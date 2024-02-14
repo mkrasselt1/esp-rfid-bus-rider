@@ -1,0 +1,29 @@
+{
+    "name": "micha/bus-rider-logger",
+    "description": "a system that uses a esp32 board to log bus rides in a web backend",
+    "type": "project",
+    "require": {
+        "doctrine/doctrine-orm-module": "^6.1",
+        "laminas/laminas-mvc-skeleton": "^2.3",
+        "lbuchs/webauthn": "^2.1",
+        "endroid/qr-code": "^5.0",
+        "spipu/html2pdf": "^5.2",
+        "laminas/laminas-mvc-plugin-flashmessenger": "^1.10",
+        "phpoffice/phpspreadsheet": "^2.0",
+        "laminas/laminas-authentication": "^2.16",
+        "laminas/laminas-cli": "^1.10"
+    },
+    "authors": [
+        {
+            "name": "Michael Krasselt",
+            "email": "michael@peanutpay.de"
+        }
+    ],
+    "minimum-stability": "stable",
+    "config": {
+        "allow-plugins": {
+            "laminas/laminas-component-installer": true,
+            "laminas/laminas-skeleton-installer": true
+        }
+    }
+}
