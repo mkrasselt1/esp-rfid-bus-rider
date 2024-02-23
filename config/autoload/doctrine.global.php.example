@@ -1,0 +1,33 @@
+<?php
+
+return [
+        'doctrine' => [
+            'configuration' =>[
+                'orm_default' => [
+                ]
+            ],
+            'connection' => [
+                'orm_default' => [
+                    'driverClass' => Doctrine\DBAL\Driver\PDO\MySQL\Driver::class,
+                    'params' => [
+                        'host'     => 'localhost',
+                        'port'     => '3306',
+                        'user'     => 'mysql_user',
+                        'password' => 'mysql_password',
+                        'dbname'   => 'mysql_db',
+                        'driver'   => 'mysqli',
+                        'charset'  => 'utf8mb4',
+                    ],
+                ],
+            ],
+            'driver' => [
+                'configuration' => [
+                    'orm_default' => [
+                        'metadata_cache' => 'apc',
+                        'query_cache'    => 'apc',
+                        'result_cache'   => 'apc',
+                    ],
+                ],
+            ],
+        ]
+    ];

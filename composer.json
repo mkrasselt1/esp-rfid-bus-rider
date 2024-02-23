@@ -1,29 +1,43 @@
 {
-    "name": "micha/bus-rider-logger",
-    "description": "a system that uses a esp32 board to log bus rides in a web backend",
-    "type": "project",
-    "require": {
-        "doctrine/doctrine-orm-module": "^6.1",
-        "laminas/laminas-mvc-skeleton": "^2.3",
-        "lbuchs/webauthn": "^2.1",
-        "endroid/qr-code": "^5.0",
-        "spipu/html2pdf": "^5.2",
-        "laminas/laminas-mvc-plugin-flashmessenger": "^1.10",
-        "phpoffice/phpspreadsheet": "^2.0",
-        "laminas/laminas-authentication": "^2.16",
-        "laminas/laminas-cli": "^1.10"
-    },
-    "authors": [
-        {
-            "name": "Michael Krasselt",
-            "email": "michael@peanutpay.de"
-        }
-    ],
-    "minimum-stability": "stable",
-    "config": {
-        "allow-plugins": {
-            "laminas/laminas-component-installer": true,
-            "laminas/laminas-skeleton-installer": true
-        }
+  "name": "micha/bus-rider-logger",
+  "description": "a system that uses a esp32 board to log bus rides in a web backend",
+  "type": "project",
+  "require": {
+      "laminas/laminas-authentication": "^2.16",
+      "laminas/laminas-cli": "^1.10",
+      "laminas/laminas-mail": "^2.25",
+      "laminas/laminas-mime": "^2.12",
+      "laminas/laminas-mvc": "^3.7",
+      "laminas/laminas-mvc-skeleton": "^2.3",
+      "laminas/laminas-mvc-plugin-flashmessenger": "^1.10",
+      "laminas/laminas-mvc-form": "^2.1",
+      "laminas/laminas-session": "^2.18",
+      "doctrine/doctrine-orm-module": "^6.1",
+      "phpoffice/phpspreadsheet": "^2.0",
+      "lbuchs/webauthn": "^2.1",
+      "endroid/qr-code": "^5.0",
+      "spipu/html2pdf": "^5.2",
+    "laminas/laminas-cache": "^3.12",
+    "laminas/laminas-cache-storage-deprecated-factory": "^1.2",
+    "laminas/laminas-diactoros": "^3.3"
+  },
+  "authors": [
+    {
+      "name": "Michael Krasselt",
+      "email": "michael@michaelkrasselt.de"
     }
+  ],
+  "minimum-stability": "stable",
+  "config": {
+    "allow-plugins": {
+      "laminas/laminas-component-installer": true,
+      "laminas/laminas-skeleton-installer": true
+    }
+  },
+  "autoload": {
+    "psr-4": {
+      "Site\\": "module/Site/src/",
+      "Rider\\": "module/Rider/src/"
+    }
+  }
 }
