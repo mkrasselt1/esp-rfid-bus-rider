@@ -1,1 +1,4 @@
 vendor/*
+.pio/*
+lib/TFT_eSPI/examples/*
+.vscode/*
