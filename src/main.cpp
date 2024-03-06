@@ -2,18 +2,43 @@
 #define ST(A) #A
 #define STR(A) ST(A)
 
+// Storage
+#include <SPIFFS.h>
+#include <FS.h>
+
+//event queues
+#include "eventQueueBase.hpp"
+
+//Audio
+// only for passive beeper
+// #include "beeper.h"
+// extern beeper beepr;
+// extern eventHandler<uint8_t> beeperEvents;
+
 // Display
 #include <TFT_eSPI.h>
-#include <qrcode_espi.h>
 TFT_eSPI tft = TFT_eSPI(135, 240); // Invoke custom library
-QRcode_eSPI qrcode(&tft);
+#include <qrcode_espi.h>
+QRcode_eSPI qrcode = QRcode_eSPI(&tft);
+
+#include "DisplayDriver.h" //display handler task
+DisplayDriver DisplayDriverInstance(&tft, TFT_BL, &qrcode);
+void displayRun(void *args)
+{
+    while (true)
+    {
+        DisplayDriverInstance.loop();
+        vTaskDelay(10);    
+    }    
+}
 
 // provisioning
 #include "esp_wifi.h"
 #include <WiFi.h>
 #include <WiFiManager.h> // https://github.com/tzapu/WiFiManager
 WiFiManager wifiManager;
-WiFiManagerParameter backendServer("backendServer", "Server URL", "http://example.com/api/backend?token=ABCDEF12345678", 260);
+WiFiManagerParameter backendServer("backendServer", "Server URL", "https://example.com/api/backend", 260);
+WiFiManagerParameter token("token", "Token", "ABCDEF12345678", 26);
 
 unsigned int timeout = 180; // seconds to run for
 unsigned int startTime = millis();
@@ -26,23 +51,10 @@ void configModeCallback(WiFiManager *myWiFiManager)
     String ssid = myWiFiManager->getConfigPortalSSID();
     String security = "WPA2";                    // "WEP", "WPA", "WPA2", "WPA3" or "nopass" for open
     String password = WiFi.macAddress().c_str(); // Password, ignored if security is "nopass"
-    // create qrcode and show config
-    qrcode.init();
-    qrcode.create("WIFI:S:" + ssid + ";T:" + security + ";P:" + password + ";;");
-    WiFi.setHostname("Bus-Rider-Reader");
-    tft.setTextDatum(MC_DATUM);
-    tft.setTextSize(2);
-    tft.setTextColor(TFT_BLACK);
-    tft.drawString("Configure", 0, 10);
-    tft.drawString("using Wifi", 0, 25);
-}
 
-void saveParamsCallback()
-{
-    Serial.println("Get Params:");
-    Serial.print(backendServer.getID());
-    Serial.print(" : ");
-    Serial.println(backendServer.getValue());
+    // create qrcode and show config
+    DisplayDriverInstance.drawQR("WIFI:S:" + ssid + ";T:" + security + ";P:" + password + ";;");
+    WiFi.setHostname("Bus-Rider-Reader");
 }
 
 // Helpers
@@ -50,6 +62,59 @@ void saveParamsCallback()
 #include <WiFiClient.h>
 #include <WiFiClientSecure.h>
 #include <HTTPClient.h>
+
+// config
+struct Config
+{
+    char server[64];
+    char token[17];
+};
+const char *configFilename = "/config.txt";
+Config config;
+
+void loadConfiguration()
+{
+    File configFile = SPIFFS.open(configFilename);
+    if (!configFile)
+    {
+        Serial.println(F("Failed to open config file"));
+        return;
+    }
+    JsonDocument doc;
+    DeserializationError error = deserializeJson(doc, configFile);
+    strlcpy(config.server,
+            doc["server"] | "example.com",
+            sizeof(config.server));
+    strlcpy(config.token,
+            doc["token"] | "ABCDEF123456789",
+            sizeof(config.token));
+    configFile.close();
+}
+
+// Saves the configuration to a file
+void saveConfiguration()
+{
+    // get values from wifi manager
+    strlcpy(config.server, backendServer.getValue(), _min((unsigned int)backendServer.getValueLength(), sizeof(config.server)));
+    strlcpy(config.token, token.getValue(), _min((unsigned int)token.getValueLength(), sizeof(config.token)));
+
+    SPIFFS.remove(configFilename);
+    File configFile = SPIFFS.open(configFilename, FILE_WRITE);
+    if (!configFile)
+    {
+        Serial.println(F("Failed to open config file"));
+        return;
+    }
+    JsonDocument doc;
+    doc["server"] = config.server;
+    doc["token"] = config.token;
+
+    if (serializeJson(doc, configFile) == 0)
+    {
+        Serial.println(F("Failed to write to file"));
+    }
+    configFile.close();
+}
 
 // Time
 #include "time.h"
@@ -148,14 +213,14 @@ void pn532Scan()
             readerTimer.stop(TimerEventClear);
             readerTimer.stop(TimerEventEM4100);
             readerTimer.stop(TimerEventPN532);
-            TimerEventClear = readerTimer.after(2000, resetLastCard);
+            TimerEventClear = readerTimer.after(1000, resetLastCard);
         }
         else
         {
             // save new card
             memcpy(&last_card, &temp_card, sizeof(card_descriptor));
             sendCard();
-            TimerEventClear = readerTimer.after(2000, resetLastCard);
+            TimerEventClear = readerTimer.after(1000, resetLastCard);
         }
     }
     nfc.setRFField(0, 0); // switch field off
@@ -194,14 +259,14 @@ void em4100Scan()
             readerTimer.stop(TimerEventClear);
             readerTimer.stop(TimerEventPN532);
             readerTimer.stop(TimerEventEM4100);
-            TimerEventClear = readerTimer.after(2000, resetLastCard);
+            TimerEventClear = readerTimer.after(1000, resetLastCard);
         }
         else
         {
             // save new card
             memcpy(&last_card, &temp_card, sizeof(card_descriptor));
             sendCard();
-            TimerEventClear = readerTimer.after(2000, resetLastCard);
+            TimerEventClear = readerTimer.after(1000, resetLastCard);
         }
     }
 }
@@ -233,8 +298,14 @@ void sendReaderState(char *msg)
 
 void sendCard()
 {
-    memcpy(&last_card, &temp_card, sizeof(card_descriptor));
+    //Beep
+    digitalWrite(12, HIGH);
+    delay(500);
+    digitalWrite(12, LOW);
+    DisplayDriverInstance.drawBmp("/login.bmp", 0, 0);
 
+    memcpy(&last_card, &temp_card, sizeof(card_descriptor));
+    Serial.println("sending card");
     // Timestamp for JSON
     struct tm timeinfo;
     time_t now;
@@ -253,23 +324,37 @@ void sendCard()
     HTTPClient http;
     http.useHTTP10(true);
     // http.setFollowRedirects(HTTPC_FORCE_FOLLOW_REDIRECTS);
-    http.begin(client, backendServer.getValue());
+    char url[128] = {0};
+    strcat(url, config.server);
+    strcat(url, "/action-card?token=");
+    strcat(url, config.token);
+    
+    http.begin(client, url);
+    
     String json;
     serializeJson(doc, json);
     Serial.println(json);
     int httpResponseCode = http.POST(json);
-
     if (httpResponseCode == 200)
     {
         Serial.println(http.getString());
         // JsonDocument docResult;
         // deserializeJson(docResult, http.getStream());
-        // // Read values
+        // // Read values from the result
         // Serial.println(docResult.getData());
         // Serial.println(docResult["time"].as<long>());
+        // Serial.println(docResult["message"].as<String>());
+        // draw first logo
+        delay(1000);
+        DisplayDriverInstance.drawBmp("/logout.bmp", 0, 0);
+        DisplayDriverInstance.setTimeout(1000, true);
     }
     else
     {
+        DisplayDriverInstance.drawBmp("/save.bmp", 0, 0);
+        DisplayDriverInstance.setTimeout(1000, true);
+        
+        //TODO save data to file and ram
         Serial.print("HTTP Response code: ");
         Serial.println(httpResponseCode);
     }
@@ -287,15 +372,22 @@ SimpleCLI cli;
 Command help;
 Command wifi;
 Command reboot;
+Command iconUpdate;
+Command download;
+Command show;
+Command test;
 
 // Callback function for help command
 void helpCallback(cmd *c)
 {
     Command cmd(c);
-    Serial.println("wifi\t\t\t\t\t|WLAN Kommandos");
-    Serial.println("\tstatus\t\t\t\t|WLAN Zustand");
-    Serial.println("\tconnect *SSID* *PASSWD*\t\t|verbinde mit WLAN Netzwerk");
-    Serial.println("\tdisconnect \t\t\t|trenne WLAN Netzwerk");
+    Serial.println("wifi\t\t\t\t\t|WiFi commands");
+    Serial.println("\tstatus\t\t\t\t|WiFi state");
+    Serial.println("\tconnect *SSID* *PASSWD*\t\t|connect to wifi");
+    Serial.println("\tdisconnect \t\t\t|disconnect wifi");
+    Serial.println("iconUpdate\t\t\t\t\t|refresh logo image");
+    Serial.println("download\t*url*\t*file\t\t\t|download url to file");
+    Serial.println("show\t*file*\t\t\t\t|show image on screen");
 }
 
 void printWiFiStatus()
@@ -410,54 +502,171 @@ void errorCallback(cmd_error *e)
     }
 }
 
+bool downloadFile2SPIFFS(const char *filename, const char *url)
+{
+    File logout_image_file = SPIFFS.open(filename, FILE_WRITE);
+    if (logout_image_file)
+    {
+        Serial.print("downloading from: ");
+        Serial.print(url);
+        WiFiClientSecure client;
+        client.setInsecure();
+        HTTPClient http;
+        http.useHTTP10(true);
+        // http.setFollowRedirects(HTTPC_FORCE_FOLLOW_REDIRECTS);
+
+        http.begin(client, url);
+        int httpCode = http.GET();
+        if (httpCode > 0)
+        {
+            if (httpCode == HTTP_CODE_OK)
+            {
+                http.writeToStream(&logout_image_file);
+            }
+            Serial.println(" successful");
+        }
+        else
+        {
+            Serial.printf("failed, error: %s\n\r", http.errorToString(httpCode).c_str());
+        }
+        http.end();
+        logout_image_file.close();
+        return true;
+    }
+    else
+    {
+        Serial.println("download cant open local file as download destination");
+    }
+    return false;
+}
+
+// Callback for Logo Update
+void iconUpdateCallback(cmd *c)
+{
+    // Download Logo
+    char url[128] = {0};
+    strcat(url, config.server);
+    strcat(url, "/action-logo?token=");
+    strcat(url, config.token);
+    if (downloadFile2SPIFFS("/logo.bmp", url))
+    {
+        DisplayDriverInstance.drawBmp("/logo.bmp", 0, 0);
+    }
+
+    // login login
+    memset(url, 0, sizeof(url));
+    strcat(url, config.server);
+    strcat(url, "/action-icon/image-login?token=");
+    strcat(url, config.token);
+    downloadFile2SPIFFS("/login.bmp", url);
+
+    // logout logout
+    memset(url, 0, sizeof(url));
+    strcat(url, config.server);
+    strcat(url, "/action-icon/image-logout?token=");
+    strcat(url, config.token);
+    downloadFile2SPIFFS("/logout.bmp", url);
+
+    // save logout
+    memset(url, 0, sizeof(url));
+    strcat(url, config.server);
+    strcat(url, "/action-icon/image-save?token=");
+    strcat(url, config.token);
+    downloadFile2SPIFFS("/save.bmp", url);
+}
+
+void downloadCallback(cmd *c)
+{
+    Command cmd(c); // Create wrapper object
+    int numArgs = cmd.countArgs();
+    if (numArgs < 2)
+    {
+        Serial.println("zu wenige Argumente, url and /filename required");
+        return;
+    }
+    Argument argUrl = cmd.getArg(0);
+    String url = argUrl.getValue();
+
+    Argument argFilename = cmd.getArg(1);
+    String filename = argFilename.getValue();
+
+    char charFilename[20];
+    filename.toCharArray(charFilename, sizeof(charFilename));
+    downloadFile2SPIFFS(charFilename, url.c_str());
+}
+
+void showCallback(cmd *c)
+{
+    Command cmd(c); // Create wrapper object
+    int numArgs = cmd.countArgs();
+    if (!numArgs)
+    {
+        Serial.println("zu wenige Argumente");
+        return;
+    }
+    Argument argFilename = cmd.getArg(0);
+    String filename = argFilename.getValue();
+
+    char charFilename[20];
+    filename.toCharArray(charFilename, sizeof(charFilename));
+    DisplayDriverInstance.drawBmp(charFilename, 0, 0);
+}
+
+bool backGroundLight = false;
+// Callback for Test function
+void testCallback(cmd *c)
+{
+    if (TFT_BL > 0)
+    {                                          // TFT_BL has been set in the TFT_eSPI library in the User Setup file TTGO_T_Display.h
+        digitalWrite(TFT_BL, backGroundLight); // Turn backlight on. TFT_BACKLIGHT_ON has been set in the TFT_eSPI library in the User Setup file TTGO_T_Display.h
+        backGroundLight = !backGroundLight;
+    }
+}
+
 void setup()
 {
     Serial.begin(115200);
     // Serial Port for PN532
     Serial1.begin(115200, SERIAL_8N1, 33, 32);
     Serial1.setTimeout(250);
-    // Serial Port for Metratec
+    // Serial Port for EM4100
     Serial2.begin(9600, SERIAL_8N1, 27, 26);
     Serial2.setTimeout(500);
 
     Serial.println("Booting");
-    Serial.print("ESP-MDB-Master Interface vers.:");
+    Serial.print("Bus Rider Reader vers.:");
     Serial.println(STR(CODE_VERSION));
 
     cli.setOnError(errorCallback); // Set error Callback
     help = cli.addCommand("help", helpCallback);
     wifi = cli.addBoundlessCommand("wifi", wifiCallback);
     reboot = cli.addCommand("reboot", rebootCallback);
+    iconUpdate = cli.addCommand("iconUpdate", iconUpdateCallback);
+    download = cli.addBoundlessCommand("download", downloadCallback);
+    show = cli.addBoundlessCommand("show", showCallback);
+    test = cli.addCommand("test", testCallback);
+
+    // Storage
+    Serial.println("start storage");
+    Serial.println("SPIFFS Info:");
+    Serial.printf("Total Bytes: %u\n", SPIFFS.totalBytes());
+    Serial.printf("Used Bytes: %u\n", SPIFFS.usedBytes());
+    Serial.printf("Free Bytes: %u\n", SPIFFS.totalBytes() - SPIFFS.usedBytes());
 
     // Buttons
+    Serial.println("buttons");
     button_init();
 
     // display
-    tft.init();
-    tft.setRotation(1);
-    tft.fillScreen(TFT_BLACK);
-    tft.setTextSize(2);
-    tft.setTextColor(TFT_GREEN);
-    tft.setCursor(0, 0);
-    tft.setTextDatum(MC_DATUM);
-    tft.setTextSize(1);
-
-    /*
-    if (TFT_BL > 0) {                           // TFT_BL has been set in the TFT_eSPI library in the User Setup file TTGO_T_Display.h
-        pinMode(TFT_BL, OUTPUT);                // Set backlight pin to output mode
-        digitalWrite(TFT_BL, TFT_BACKLIGHT_ON); // Turn backlight on. TFT_BACKLIGHT_ON has been set in the TFT_eSPI library in the User Setup file TTGO_T_Display.h
-    }
-    */
-    tft.setSwapBytes(true);
-    // tft.pushImage(0, 0, 240, 135, ttgo);
-    // espDelay(5000);
-
-    tft.setRotation(0);
+    xTaskCreatePinnedToCore(displayRun, "Display Task", 4096, NULL, 1, NULL, 0);
 
     // WiFi
+    loadConfiguration();
+    Serial.println("wifi manager");
     wifiManager.setAPCallback(configModeCallback);
-    wifiManager.setSaveParamsCallback(saveParamsCallback);
+    wifiManager.setSaveParamsCallback(saveConfiguration);
     wifiManager.addParameter(&backendServer);
+    wifiManager.addParameter(&token);
     wifiManager.setConfigPortalBlocking(false);
     wifiManager.setConfigPortalTimeout(180);
     wifiManager.setConnectRetries(5);
@@ -467,7 +676,7 @@ void setup()
     wifiManager.autoConnect();
 
     // start Readers
-
+    Serial.println("start readers");
     //  PN532 start
     nfc.begin();
     if (!nfc.getFirmwareVersion())
@@ -484,6 +693,29 @@ void setup()
     // em4100 end
 
     readerActive = true;
+
+    // draw first logo
+    Serial.println("draws logo");
+    DisplayDriverInstance.drawBmp("/logo.bmp", 0, 0);
+
+    // setup audio
+    // passive buzzer
+    // beeperEvents.init();
+    // beepr.init();
+    // beepr.start();
+    // 
+    // // start sound
+    // uint8_t sound = 0;
+    // beeperEvents.addEvent(&sound, BEEPER_EVENTS::PLAY_SOUND);
+    //active buzzer
+    pinMode(12, OUTPUT);
+    digitalWrite(12, HIGH);
+    delay(300);
+    digitalWrite(12, LOW);
+    delay(300);
+    digitalWrite(12, HIGH);
+    delay(300);
+    digitalWrite(12, LOW);
 }
 
 uint8_t newByte = '\0';
@@ -571,7 +803,7 @@ void loop()
             if (adapter_sta_list.num && !drawnConfigQR)
             {
                 drawnConfigQR = true;
-                qrcode.create("http://" + WiFi.softAPIP().toString()); // config url
+                DisplayDriverInstance.drawQR("http://" + WiFi.softAPIP().toString()); // config url
             }
         }
     }
