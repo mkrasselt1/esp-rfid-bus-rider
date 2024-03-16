@@ -1,17 +1,17 @@
 Device Pinout for LILYGO ESP32 T-Display Modul:
 
-PN532:      ESP32:
+PN532       ESP32
 GND         G
 VCC         5V
 TXD         33
 RXD         32
 
-Buzzer:
+Buzzer      ESP32
 S           GPIO12
 +           3V
 -           G
 
-HW-898-A:
+HW-898-A    ESP32
 GND         G
 J2          -
 TX          GPIO27

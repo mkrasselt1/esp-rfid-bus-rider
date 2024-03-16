@@ -3,3 +3,7 @@ vendor/*
 lib/TFT_eSPI/examples/*
 .vscode/*
 config/autoload/doctrine.global.php
+firmware/bootloader.bin
+firmware/firmware.bin
+firmware/partitions.bin
+firmware/spiffs.bin

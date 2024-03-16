@@ -6,14 +6,14 @@
 #include <SPIFFS.h>
 #include <FS.h>
 
-//event queues
+// event queues
 #include "eventQueueBase.hpp"
 
-//Audio
-// only for passive beeper
-// #include "beeper.h"
-// extern beeper beepr;
-// extern eventHandler<uint8_t> beeperEvents;
+// Audio
+//  only for passive beeper
+//  #include "beeper.h"
+//  extern beeper beepr;
+//  extern eventHandler<uint8_t> beeperEvents;
 
 // Display
 #include <TFT_eSPI.h>
@@ -28,8 +28,8 @@ void displayRun(void *args)
     while (true)
     {
         DisplayDriverInstance.loop();
-        vTaskDelay(10);    
-    }    
+        vTaskDelay(10);
+    }
 }
 
 // provisioning
@@ -52,9 +52,48 @@ void configModeCallback(WiFiManager *myWiFiManager)
     String security = "WPA2";                    // "WEP", "WPA", "WPA2", "WPA3" or "nopass" for open
     String password = WiFi.macAddress().c_str(); // Password, ignored if security is "nopass"
 
-    // create qrcode and show config
+    // create qr code and show config
     DisplayDriverInstance.drawQR("WIFI:S:" + ssid + ";T:" + security + ";P:" + password + ";;");
     WiFi.setHostname("Bus-Rider-Reader");
+}
+
+// buttons
+#include "Button2.h"
+#define BUTTON_1 35
+#define BUTTON_2 0
+Button2 btn1(BUTTON_1);
+Button2 btn2(BUTTON_2);
+
+void button_init()
+{
+    btn1.setPressedHandler([](Button2 &b)
+                           { 
+                            Serial.println("Btn 1 short pressed"); 
+                            wifiManager.startConfigPortal("Bus-Reader", WiFi.macAddress().c_str()); 
+                            // create qr code and show config
+                            DisplayDriverInstance.drawQR("WIFI:S:" + wifiManager.getConfigPortalSSID() + ";T:WAP2;P:" + WiFi.macAddress().c_str() + ";;");
+                            WiFi.setHostname("Bus-Rider-Reader");
+                            startTime = millis();
+                            portalRunning = true; });
+    btn2.setPressedHandler([](Button2 &b)
+                           {
+                            Serial.println("Btn 1 long pressed"); 
+        if (!portalRunning)
+        {
+            if (startAP)
+            {
+                Serial.println("Button Pressed, Starting Config Portal");
+                wifiManager.setConfigPortalBlocking(false);
+                wifiManager.startConfigPortal("Bus-Reader", WiFi.macAddress().c_str());
+            }
+            else
+            {
+                Serial.println("Button Pressed, Starting Web Portal");
+                wifiManager.startWebPortal();
+            }
+            portalRunning = true;
+            startTime = millis();
+        } });
 }
 
 // Helpers
@@ -114,46 +153,13 @@ void saveConfiguration()
         Serial.println(F("Failed to write to file"));
     }
     configFile.close();
+    DisplayDriverInstance.setTimeout(10, true);
 }
 
 // Time
 #include "time.h"
 const long gmtOffset_sec = 3600;
 const int daylightOffset_sec = 3600;
-
-// buttons
-#include "Button2.h"
-#define BUTTON_1 35
-#define BUTTON_2 0
-Button2 btn1(BUTTON_1);
-Button2 btn2(BUTTON_2);
-
-void button_init()
-{
-    btn1.setPressedHandler([](Button2 &b)
-                           { 
-                            Serial.println("Btn 1 pressed"); 
-                            wifiManager.startConfigPortal("Bus-Reader", WiFi.macAddress().c_str()); 
-                            portalRunning = true; });
-    btn2.setPressedHandler([](Button2 &b)
-                           {
-        if (!portalRunning)
-        {
-            if (startAP)
-            {
-                Serial.println("Button Pressed, Starting Config Portal");
-                wifiManager.setConfigPortalBlocking(false);
-                wifiManager.startConfigPortal("Bus-Reader", WiFi.macAddress().c_str());
-            }
-            else
-            {
-                Serial.println("Button Pressed, Starting Web Portal");
-                wifiManager.startWebPortal();
-            }
-            portalRunning = true;
-            startTime = millis();
-        } });
-}
 
 // card readers
 #include <PN532_HSU.h>
@@ -162,6 +168,7 @@ void button_init()
 Timer readerTimer;
 uint16_t TimerEventPN532 = 0;
 uint16_t TimerEventEM4100 = 0;
+uint16_t TimerTimezone = 0;
 uint16_t TimerEventClear = 0;
 PN532_HSU pn532hsu(Serial1);
 PN532 nfc(pn532hsu);
@@ -298,7 +305,7 @@ void sendReaderState(char *msg)
 
 void sendCard()
 {
-    //Beep
+    // Beep
     digitalWrite(12, HIGH);
     delay(500);
     digitalWrite(12, LOW);
@@ -328,9 +335,9 @@ void sendCard()
     strcat(url, config.server);
     strcat(url, "/action-card?token=");
     strcat(url, config.token);
-    
+
     http.begin(client, url);
-    
+
     String json;
     serializeJson(doc, json);
     Serial.println(json);
@@ -353,8 +360,8 @@ void sendCard()
     {
         DisplayDriverInstance.drawBmp("/save.bmp", 0, 0);
         DisplayDriverInstance.setTimeout(1000, true);
-        
-        //TODO save data to file and ram
+
+        // TODO save data to file and ram
         Serial.print("HTTP Response code: ");
         Serial.println(httpResponseCode);
     }
@@ -648,6 +655,10 @@ void setup()
 
     // Storage
     Serial.println("start storage");
+    if(!SPIFFS.begin()){
+        Serial.println("not formatted - starting formatting");
+        SPIFFS.format();
+    }
     Serial.println("SPIFFS Info:");
     Serial.printf("Total Bytes: %u\n", SPIFFS.totalBytes());
     Serial.printf("Used Bytes: %u\n", SPIFFS.usedBytes());
@@ -668,9 +679,9 @@ void setup()
     wifiManager.addParameter(&backendServer);
     wifiManager.addParameter(&token);
     wifiManager.setConfigPortalBlocking(false);
-    wifiManager.setConfigPortalTimeout(180);
-    wifiManager.setConnectRetries(5);
-    wifiManager.setConnectTimeout(30);
+    wifiManager.setConfigPortalTimeout(timeout);
+    wifiManager.setConnectRetries(3);
+    wifiManager.setConnectTimeout(10);
     wifiManager.setHostname("Bus-Rider-Reader");
     wifiManager.setEnableConfigPortal(false);
     wifiManager.autoConnect();
@@ -692,6 +703,19 @@ void setup()
     TimerEventEM4100 = readerTimer.every(200, em4100Scan);
     // em4100 end
 
+    TimerTimezone = readerTimer.every(2000, []()
+                                      {
+                                        // timezone
+                                        struct tm timeInfo;
+                                        getLocalTime(&timeInfo);
+                                        time_t now;
+                                        time(&now);
+                                        if (now <= 10000)
+                                        {
+                                            configTime(gmtOffset_sec, daylightOffset_sec, "0.cz.pool.ntp.org", "1.cz.pool.ntp.org", "2.cz.pool.ntp.org");
+                                            readerTimer.stop(TimerTimezone);
+                                        } });
+
     readerActive = true;
 
     // draw first logo
@@ -703,11 +727,11 @@ void setup()
     // beeperEvents.init();
     // beepr.init();
     // beepr.start();
-    // 
+    //
     // // start sound
     // uint8_t sound = 0;
     // beeperEvents.addEvent(&sound, BEEPER_EVENTS::PLAY_SOUND);
-    //active buzzer
+    // active buzzer
     pinMode(12, OUTPUT);
     digitalWrite(12, HIGH);
     delay(300);
@@ -764,16 +788,6 @@ void loop()
         }
     }
 
-    // timezone
-    struct tm timeinfo;
-    getLocalTime(&timeinfo);
-    time_t now;
-    time(&now);
-    if (now <= 10000)
-    {
-        configTime(gmtOffset_sec, daylightOffset_sec, "0.cz.pool.ntp.org", "1.cz.pool.ntp.org", "2.cz.pool.ntp.org");
-    }
-
     // put your main code here, to run repeatedly:
     if (portalRunning)
     {
@@ -782,7 +796,7 @@ void loop()
         // check for timeout
         if ((millis() - startTime) > (timeout * 1000))
         {
-            Serial.println("portaltimeout");
+            Serial.println("portal timeout");
             portalRunning = false;
             if (startAP)
             {
