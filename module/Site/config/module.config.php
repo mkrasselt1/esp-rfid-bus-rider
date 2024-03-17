@@ -1,8 +1,11 @@
 <?php
 namespace Site;
 
+use Laminas\I18n\Translator\Translator;
+use Laminas\I18n\Translator\TranslatorServiceFactory;
 use Site\Controller\IndexController;
 use Laminas\Mvc\Controller\LazyControllerAbstractFactory;
+use Laminas\Mvc\I18n\Translator as I18nTranslator;
 use Laminas\Router\Http\Literal;
 use Site\Service\Factory\NavManagerFactory;
 use Site\Service\NavManager;
@@ -34,6 +37,9 @@ return [
             // AuthenticationService::class => AuthenticationServiceFactory::class,
             NavManager::class => NavManagerFactory::class,
             // MailSendManager::class => MailSendManagerFactory::class,
+            \Laminas\I18n\Translator\TranslatorInterface::class => \Laminas\I18n\Translator\TranslatorServiceFactory::class,
+            Translator::class => TranslatorServiceFactory::class,
+            I18nTranslator::class => TranslatorServiceFactory::class
         ]
     ],
     'doctrine' => [
@@ -52,6 +58,9 @@ return [
         ],
     ],
     'view_helpers' => [
+        'invokables' => [
+            'translate' => \Laminas\I18n\View\Helper\Translate::class
+        ],
         'factories' => [
             Menu::class => MenuFactory::class,
             // LocationLink::class => InvokableFactory::class,

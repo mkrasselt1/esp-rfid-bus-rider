@@ -2,6 +2,8 @@
 
 namespace Site\Service;
 
+use Laminas\I18n\Translator\Translator;
+use Laminas\Mvc\I18n\Translator as I18nTranslator;
 use Laminas\Session\Container;
 use Laminas\View\Helper\Url;
 use User\Service\UserManager;
@@ -17,6 +19,12 @@ class NavManager
      * @var UserManager
      */
     private $userManager;
+
+    /**
+     * Translator
+     * @var Translator
+     */
+    private $translator;
 
     /**
      * Url view helper.
@@ -39,11 +47,16 @@ class NavManager
     /**
      * Constructs the service.
      */
-    public function __construct(Url $urlHelper, Container $sessionContainer, string $route)
-    {
+    public function __construct(
+        Url $urlHelper,
+        Container $sessionContainer,
+        string $route,
+        Translator $translator
+    ) {
         $this->urlHelper = $urlHelper;
         $this->sessionContainer = $sessionContainer;
         $this->route = $route;
+        $this->translator = $translator;
     }
 
     /**
@@ -56,34 +69,34 @@ class NavManager
 
         $items[] = [
             'id' => 'dashboard',
-            'label' => 'Dashboard',
+            'label' => $this->translator->translate('Dashboard'),
             'icon' => 'house-fill',
             'link' => $url('home'),
         ];
         $items[] = [
             'id' => 'orders',
             'icon' => 'file-earmark',
-            'label' => 'Orders'
+            'label' => $this->translator->translate('orders')
         ];
         $items[] = [
             'id' => 'products',
             'icon' => 'cart',
-            'label' => 'Products'
+            'label' => $this->translator->translate('products')
         ];
         $items[] = [
             'id' => 'reports',
             'icon' => 'graph-up',
-            'label' => 'Reports'
+            'label' => $this->translator->translate('reports')
         ];
         $items[] = [
             'id' => 'integrations',
             'icon' => 'puzzle',
-            'label' => 'Integrations'
+            'label' => $this->translator->translate('integrations')
         ];
         $items[] = [
             'id' => 'people',
             'icon' => 'people',
-            'label' => 'Users',
+            'label' => $this->translator->translate('users'),
             'dropdown' => [
                 [
                     'id' => 'integrations',

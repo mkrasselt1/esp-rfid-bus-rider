@@ -1,5 +1,6 @@
 <?php
 return [
+    'Laminas\Mvc\I18n',
     // 'Laminas\Log',
     'Laminas\Cache',
     'Laminas\Cache\Storage\Adapter\Memory',
@@ -11,14 +12,13 @@ return [
     // 'Laminas\Mvc\Plugin\Identity',
     // 'Laminas\Mvc\Plugin\Prg',
     'Laminas\Session',
-    // 'Laminas\I18n',
     'Laminas\Form',
     'Laminas\InputFilter',
     'Laminas\Filter',
     'Laminas\Hydrator',
     'Laminas\Router',
     'Laminas\Validator',
-    //'Laminas\I18n',
+    'Laminas\I18n',
     'Laminas\InputFilter',
     'Laminas\Filter',
     'Laminas\Hydrator',

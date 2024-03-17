@@ -2,6 +2,7 @@
 
 namespace Site\Service\Factory;
 
+use Laminas\I18n\Translator\Translator;
 use Psr\Container\ContainerInterface;
 use Laminas\Session\Container;
 use Laminas\Session\SessionManager;
@@ -31,9 +32,9 @@ class NavManagerFactory
         if ($routeMatch) {
             $route      = $routeMatch->getMatchedRouteName();
         }
+        $translator = $container->get(Translator::class);
 
-
-        return new NavManager($urlHelper, $sessionContainer, $route);
+        return new NavManager($urlHelper, $sessionContainer, $route, $translator);
     }
 
     protected function forgetInvalidSession($sessionManager)
