@@ -1,0 +1,40 @@
+<?php
+$this->headTitle($title = 'add a bus stop for route ')->setSeparator(" for ");
+$form->prepare();
+$busStopFieldset = $form->get("busStop");
+?>
+<h1><?= $title ?></h1>
+<?= $this->form()->openTag($form); ?>
+<div class="table-resp">
+    <table class="table table-striped">
+        <tbody>
+            <tr>
+                <th><?= $this->formLabel($busStopFieldset->get('name')); ?></th>
+                <td>
+                    <div class="form-group">
+                        <?= $this->formElement($busStopFieldset->get('name')); ?>
+                        <?= $this->FormErrorMessage($this->formElementErrors($busStopFieldset->get('name'))); ?>
+                    </div>
+
+                </td>
+            </tr>
+            <tr>
+                <th><?= $this->formLabel($busStopFieldset->get('status')); ?></th>
+                <td>
+                    <div class="form-group">
+                        <?= $this->formElement($busStopFieldset->get('status')); ?>
+                        <?= $this->FormErrorMessage($this->formElementErrors($busStopFieldset->get('status'))); ?>
+                    </div>
+
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <?= count($form->getMessages()) ? $this->FormErrorMessage(var_export($form->getMessages(), true)) : ""; ?>
+    <div class="form-group">
+        <?= $this->formElement($form->get('csrf')); ?>
+        <?= $this->formElement($form->get('submit')); ?>
+        <?= $this->FormErrorMessage($this->formElementErrors($form->get('submit'))); ?>
+    </div>
+    <?= $this->form()->closeTag($form); ?>
+</div>

@@ -1,0 +1,51 @@
+<?php
+
+use Reader\Entity\Reader;
+
+$this->headTitle($title = 'lists all readers')->setSeparator(" for ");
+?>
+<h1>
+    <?= $title ?>
+    <a class="btn btn-primary" href="<?= $this->url("reader", ["action" => "add"]) ?>">
+        <i class="bi bi-person-badge"></i>
+        <i class="bi bi-plus"></i>
+    </a>
+</h1>
+<div class="table-resp">
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>name</th>
+                <th>status</th>
+                <th>date created</th>
+                <th>date modified</th>
+                <th>actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            <?php
+
+            if (isset($readers) && is_array($readers)) {
+                /**
+                 * @var Reader $reader
+                 */
+                foreach ($readers as $reader) {
+            ?>
+                    <tr>
+                        <td><?= $reader->getName(); ?></td>
+                        <td><?= $reader->getStatusAsString(); ?></td>
+                        <td><?= $reader->getDateCreated()->format("H:i:s d.m.Y") ?></td>
+                        <td><?= $reader->getDateModified()->format("H:i:s d.m.Y") ?></td>
+                        <td>
+                            <a class="btn btn-primary" href="<?= $this->url("company", ["action" => "edit", "id" => $reader->getId()]) ?>">
+                                <i class="bi bi-pencil-square"></i> edit</a>
+                            <a class="btn btn-primary" href="<?= $this->url("company", ["action" => "delete", "id" => $reader->getId()]) ?>">
+                                <i class="bi bi-trash"></i>delete</a>
+                        </td>
+                    </tr>
+            <?php }
+            }
+            ?>
+        </tbody>
+    </table>
+</div>

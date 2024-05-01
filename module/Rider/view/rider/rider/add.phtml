@@ -1,0 +1,60 @@
+<?php
+$this->headTitle($title = 'add a rider')->setSeparator(" for ");
+$form->prepare();
+$employeeFieldset = $form->get("employee");
+?>
+<h1><?= $title ?></h1>
+<?= $this->form()->openTag($form); ?>
+<div class="table-resp">
+    <table class="table table-striped">
+        <tbody>
+            <tr>
+                <th><?= $this->formLabel($employeeFieldset->get('name')); ?></th>
+                <td>
+                    <div class="form-group">
+                        <?= $this->formElement($employeeFieldset->get('name')); ?>
+                        <?= $this->FormErrorMessage($this->formElementErrors($employeeFieldset->get('name'))); ?>
+                    </div>
+
+                </td>
+            </tr>
+            <tr>
+                <th><?= $this->formLabel($employeeFieldset->get('company')); ?></th>
+                <td>
+                    <div class="form-group">
+                        <?= $this->formElement($employeeFieldset->get('company')); ?>
+                        <?= $this->FormErrorMessage($this->formElementErrors($employeeFieldset->get('company'))); ?>
+                    </div>
+
+                </td>
+            </tr>
+            <tr>
+                <th><?= $this->formLabel($employeeFieldset->get('busStop')); ?></th>
+                <td>
+                    <div class="form-group">
+                        <?= $this->formElement($employeeFieldset->get('busStop')); ?>
+                        <?= $this->FormErrorMessage($this->formElementErrors($employeeFieldset->get('busStop'))); ?>
+                    </div>
+
+                </td>
+            </tr>
+            <tr>
+                <th><?= $this->formLabel($employeeFieldset->get('status')); ?></th>
+                <td>
+                    <div class="form-group">
+                        <?= $this->formElement($employeeFieldset->get('status')); ?>
+                        <?= $this->FormErrorMessage($this->formElementErrors($employeeFieldset->get('status'))); ?>
+                    </div>
+
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <?= count($form->getMessages()) ? $this->FormErrorMessage(var_export($form->getMessages(), true)) : ""; ?>
+    <div class="form-group">
+        <?= $this->formElement($form->get('csrf')); ?>
+        <?= $this->formElement($form->get('submit')); ?>
+        <?= $this->FormErrorMessage($this->formElementErrors($form->get('submit'))); ?>
+    </div>
+    <?= $this->form()->closeTag($form); ?>
+</div>

@@ -11,7 +11,7 @@ use Doctrine\ORM\EntityRepository;
 /**
  * This class represents a registered employee.
  * @ORM\Entity()
- * @ORM\Table(name="employee")
+ * @ORM\Table(name="Employee")
  */
 class Employee extends EntityRepository
 {
@@ -21,6 +21,14 @@ class Employee extends EntityRepository
     const STATUS_INACTIVE     = 2; // inactive employee.
     const STATUS_DISABLED     = 3; // disabled employee.
     const STATUS_RETIRED      = 4; // retired employee.
+
+    const STATUS_LIST = [
+        self::STATUS_UNINITIATED    => 'not initialised',
+        self::STATUS_ACTIVE         => 'active',
+        self::STATUS_INACTIVE       => 'inactive',
+        self::STATUS_DISABLED       => 'disabled',
+        self::STATUS_RETIRED        => 'deleted',
+    ];
 
     /**
      * @var integer
@@ -47,7 +55,7 @@ class Employee extends EntityRepository
 
     /**
      * @var DateTime
-     * @ORM\Column(name="date_created", type="datetime", nullable=false)
+     * @ORM\Column(name="dateCreated", type="datetime", nullable=false)
      */
     protected $dateCreated;
 
@@ -57,9 +65,25 @@ class Employee extends EntityRepository
     protected $dateModified;
 
     /**
-     * @ORM\ManyToOne(targetEntity="Employee", cascade={"all"})
+     * @ORM\OneToMany(targetEntity="Card", mappedBy="employee", cascade={"all"})
      */
     protected $cards;
+
+    /**
+     * @ORM\ManyToOne(targetEntity="BusStop", cascade={"all"})
+     */
+    protected $busStop;
+
+    /**
+     * @ORM\ManyToOne(targetEntity="Company", cascade={"all"})
+     */
+    protected $company;
+
+    /**
+     * @ORM\OneToMany(targetEntity="Ride", mappedBy="employee", cascade={"all"})
+     */
+    protected $rides;
+
 
     /**
      * @ORM\PrePersist
@@ -128,10 +152,46 @@ class Employee extends EntityRepository
      * Sets full name.
      * @param string $name
      */
-    public function setName($name):self
+    public function setName($name): self
     {
         $this->name = $name;
         return $this;
+    }
+
+    /**
+     * returns associates company.
+     * @return Company
+     */
+    public function getCompany()
+    {
+        return $this->company;
+    }
+
+    /**
+     * Sets associated company
+     * @param Company $company
+     */
+    public function setCompany(Company $company)
+    {
+        $this->company = $company;
+    }
+
+    /**
+     * returns associates company.
+     * @return BusStop
+     */
+    public function getBusStop()
+    {
+        return $this->busStop;
+    }
+
+    /**
+     * Sets associated company
+     * @param BusStop $company
+     */
+    public function setBusStop(BusStop $busStop)
+    {
+        $this->busStop = $busStop;
     }
 
     /**
@@ -145,11 +205,11 @@ class Employee extends EntityRepository
 
     /**
      * Sets associated cards.
-     * @param Employee $employee
+     * @param Collection $employee
      */
-    public function setCards(Collection $employees)
+    public function setCards(Collection $cards)
     {
-        $this->cards = $employees;
+        $this->cards = $cards;
     }
 
     /**
@@ -199,13 +259,7 @@ class Employee extends EntityRepository
      */
     public static function getStatusList()
     {
-        return [
-            self::STATUS_UNINITIATED => 'Nicht Initialisiert',
-            self::STATUS_ACTIVE => 'Aktiv',
-            self::STATUS_INACTIVE => 'Inaktiv',
-            self::STATUS_DISABLED => 'Deaktiviert',
-            self::STATUS_RETIRED => 'Beendet',
-        ];
+        return self::STATUS_LIST;
     }
 
     /**
@@ -249,6 +303,15 @@ class Employee extends EntityRepository
             $dateCreated = new DateTime();
         }
         $this->dateCreated = $dateCreated;
+    }
+
+    /**
+     * Returns the date of last reader change
+     * @return DateTime     
+     */
+    public function getDateModified(): \DateTime
+    {
+        return $this->dateModified;
     }
 
     /**

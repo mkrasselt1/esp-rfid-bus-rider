@@ -1,0 +1,53 @@
+<?php
+$this->headTitle($title = 'add a reader')->setSeparator(" for ");
+$form->prepare();
+$readerFieldset = $form->get("reader");
+?>
+<h1><?= $title ?></h1>
+<?= $this->form()->openTag($form); ?>
+<div class="table-resp">
+    <table class="table table-striped">
+        <tbody>
+            <tr>
+                <th><?= $this->formLabel($readerFieldset->get('name')); ?></th>
+                <td>
+                    <div class="form-group">
+                        <?= $this->formElement($readerFieldset->get('name')); ?>
+                        <?= $this->FormErrorMessage($this->formElementErrors($readerFieldset->get('name'))); ?>
+                    </div>
+
+                </td>
+            </tr>
+            <tr>
+                <th><?= $this->formLabel($readerFieldset->get('token')); ?></th>
+                <td>
+                    <div class="form-group">
+                        <?= $this->formElement($readerFieldset->get('token')); ?>
+                        <?= $this->FormErrorMessage($this->formElementErrors($readerFieldset->get('token'))); ?>
+                    </div>
+
+                </td>
+            </tr>
+            <tr>
+                <th><?= $this->formLabel($readerFieldset->get('status')); ?></th>
+                <td>
+                    <div class="form-group">
+                        <?= $this->formElement($readerFieldset->get('status')); ?>
+                        <?= $this->FormErrorMessage($this->formElementErrors($readerFieldset->get('status'))); ?>
+                    </div>
+
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <?= count($form->getMessages()) ? $this->FormErrorMessage(var_export($form->getMessages(), true)) : ""; ?>
+    <p>
+        the token is only visible once here
+    </p>
+    <div class="form-group">
+        <?= $this->formElement($form->get('csrf')); ?>
+        <?= $this->formElement($form->get('submit')); ?>
+        <?= $this->FormErrorMessage($this->formElementErrors($form->get('submit'))); ?>
+    </div>
+    <?= $this->form()->closeTag($form); ?>
+</div>

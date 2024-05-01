@@ -7,18 +7,26 @@ use Doctrine\ORM\Mapping as ORM;
 use Doctrine\ORM\EntityRepository;
 
 /**
- * This class represents a registered card.
+ * This class represents a bus stop on a bus line
  * @ORM\Entity()
- * @ORM\Table(name="card")
+ * @ORM\Table(name="BusStop")
  */
-class Card extends EntityRepository
+class BusStop extends EntityRepository
 {
-    // Card status constants.
-    const STATUS_UNINITIATED  = 0; // Not yet existing card.
-    const STATUS_ACTIVE       = 1; // active card.
-    const STATUS_INACTIVE     = 2; // inactive card.
-    const STATUS_DISABLED     = 3; // disabled card.
-    const STATUS_RETIRED      = 4; // retired card.
+    // company status constants.
+    const STATUS_UNINITIATED  = 0; // Not yet existing company.
+    const STATUS_ACTIVE       = 1; // active company.
+    const STATUS_INACTIVE     = 2; // inactive company.
+    const STATUS_DISABLED     = 3; // disabled company.
+    const STATUS_RETIRED      = 4; // retired company.
+
+    const STATUS_LIST = [
+        self::STATUS_UNINITIATED  => "Not yet existing",
+        self::STATUS_ACTIVE       => "active",
+        self::STATUS_INACTIVE     => "inactive",
+        self::STATUS_DISABLED     => "disabled",
+        self::STATUS_RETIRED      => "retired",
+    ];
 
     /**
      * @var integer
@@ -27,11 +35,6 @@ class Card extends EntityRepository
      * @ORM\Column(type="integer")
      */
     protected $id;
-
-    /** 
-     * @ORM\Column(name="uid", type="string", length=70)  
-     */
-    protected $uid;
 
     /** 
      * @ORM\Column(name="name")  
@@ -44,6 +47,12 @@ class Card extends EntityRepository
     protected $status;
 
     /**
+     * @ORM\ManyToOne(targetEntity="BusRoute", inversedBy="busStops", cascade={"all"})
+     * @ORM\JoinColumn(name="busRoute", referencedColumnName="id")
+     */
+    protected $busRoute;
+
+    /**
      * @var DateTime
      * @ORM\Column(name="dateCreated", type="datetime", nullable=false)
      */
@@ -53,18 +62,6 @@ class Card extends EntityRepository
      * @ORM\Column(name="dateModified", type="datetime", nullable=false, options={"default": "CURRENT_TIMESTAMP"})
      */
     protected $dateModified;
-
-    /**
-     * @ORM\ManyToOne(targetEntity="Employee", inversedBy="cards", cascade={"all"})
-     * @ORM\JoinColumn(name="employee", referencedColumnName="id")
-     */
-    protected $employee;
-
-    /**
-     * @ORM\ManyToOne(targetEntity="Ride", cascade={"all"})
-     */
-    protected $rides;
-
 
     /**
      * @ORM\PrePersist
@@ -80,9 +77,8 @@ class Card extends EntityRepository
     {
         $this->setDateCreated();
         $this->setDateModified();
-        $this->setStatus(self::STATUS_ACTIVE);
-        $this->setToken(bin2hex(random_bytes(32)));
     }
+
     /**
      * Returns card id.
      * @return integer
@@ -102,26 +98,8 @@ class Card extends EntityRepository
     }
 
     /**
-     * Returns token.     
-     * @return string
-     */
-    public function getToken()
-    {
-        return $this->uid;
-    }
-
-    /**
-     * Sets token.     
-     * @param string $token
-     */
-    public function setToken($token)
-    {
-        $this->uid = $token;
-    }
-
-    /**
-     * Returns full name.
-     * @return string     
+     * returns the name.
+     * @return String
      */
     public function getName()
     {
@@ -129,31 +107,39 @@ class Card extends EntityRepository
     }
 
     /**
-     * Sets full name.
-     * @param string $name
+     * Sets the name
+     * @param String $name
      */
-    public function setName($name):self
+    public function setName(String $name)
     {
         $this->name = $name;
-        return $this;
     }
 
     /**
-     * returns associates user.
-     * @return Employee
+     * returns associates bus route
+     * @return BusRoute
      */
-    public function getEmployee()
+    public function getBusRoute()
     {
-        return $this->employee;
+        return $this->busRoute;
     }
 
     /**
-     * Sets associated user.
-     * @param Employee $employee
+     * Sets associated bus route
+     * @param BusRoute $busRoute
      */
-    public function setEmployee($employee)
+    public function setBusRoute(BusRoute $busRoute)
     {
-        $this->employee = $employee;
+        $this->busRoute = $busRoute;
+    }
+
+    /**
+     * returns associated bus route name
+     * @return String
+     */
+    public function getBusRouteName()
+    {
+        return $this->getBusRoute()?->getName() ?? "-/-";
     }
 
     /**
@@ -203,17 +189,11 @@ class Card extends EntityRepository
      */
     public static function getStatusList()
     {
-        return [
-            self::STATUS_UNINITIATED => 'Nicht Initialisiert',
-            self::STATUS_ACTIVE => 'Aktiv',
-            self::STATUS_INACTIVE => 'Inaktiv',
-            self::STATUS_DISABLED => 'Deaktiviert',
-            self::STATUS_RETIRED => 'Beendet',
-        ];
+        return self::STATUS_LIST;
     }
 
     /**
-     * Returns user status as string.
+     * Returns company status as string.
      * @return string
      */
     public function getStatusAsString()
@@ -222,7 +202,7 @@ class Card extends EntityRepository
         if (isset($list[$this->status]))
             return $list[$this->status];
 
-        return 'Unbekannt';
+        return self::STATUS_LIST[self::STATUS_UNINITIATED];
     }
 
     /**

@@ -7,7 +7,11 @@ use Laminas\Mvc\Controller\LazyControllerAbstractFactory;
 use Laminas\Router\Http\Segment;
 use Reader\Controller\ApiController;
 use Reader\Controller\BackendController;
+use Reader\Controller\FirmwareController;
+use Reader\Controller\FlashController;
 use Reader\Controller\ReaderController;
+use Rider\Service\CardService;
+use Rider\Service\Factory\CardServiceFactory;
 
 $dateRegex = '((((19|20)([2468][048]|[13579][26]|0[48])|2000)-02-29|((19|20)[0-9]{2}-(0[4678]|1[02])-(0[1-9]|[12][0-9]|30)|(19|20)[0-9]{2}-(0[1359]|11)-(0[1-9]|[12][0-9]|3[01])|(19|20)[0-9]{2}-02-(0[1-9]|1[0-9]|2[0-8])))T([01][0-9]|2[0-3]):([012345][0-9]):([012345][0-9]))|[0-9]*';
 return [
@@ -27,10 +31,11 @@ return [
                     'backend' => [
                         'type' => Segment::class,
                         'options' => [
-                            'route' => '/backend[/action-:action][/number-:number]',
+                            'route' => '/backend[/action-:action][/number-:number][/image-:image]',
                             'constraints' => [
                                 'action' => '[a-zA-Z][a-zA-Z0-9_-]*',
                                 'number' => '[a-zA-Z0-9_-]*',
+                                'image' => '[a-zA-Z]*',
                             ],
                             'defaults' => [
                                 'controller'    => BackendController::class,
@@ -43,7 +48,11 @@ return [
             'reader' => [
                 'type'    => Segment::class,
                 'options' => [
-                    'route'    => '/reader',
+                    'route'    => '/reader[/action-:action[/id-:id]]',
+                    'constraints' => [
+                        'action' => '[a-zA-Z][a-zA-Z0-9_-]*',
+                        'id' => '[0-9]*',
+                    ],
                     'defaults' => [
                         'controller'    => ReaderController::class,
                         'action'        => 'index',
@@ -58,12 +67,39 @@ return [
                             'constraints' => [
                                 'action' => '[a-zA-Z][a-zA-Z0-9_-]*',
                                 'number' => '[a-zA-Z0-9_-]*',
-                                'terminal'   => '[0-9]*',
-                                'page'  => '[0-9]*',
-                                'size'  => '[0-9]*',
                             ],
                             'defaults' => [
                                 'controller'    => ReaderController::class,
+                                'action'        => 'index',
+                            ],
+                        ],
+                    ],
+                    'flash' => [
+                        'type' => Segment::class,
+                        'options' => [
+                            'route' => '/flash[/action-:action][/version-:version]',
+                            'constraints' => [
+                                'action' => '[a-zA-Z][a-zA-Z0-9_-]*',
+                                'number' => '[a-zA-Z0-9_-]*',
+                                'version' => '[a-zA-Z0-9_-]*',
+                            ],
+                            'defaults' => [
+                                'controller'    => FlashController::class,
+                                'action'        => 'index',
+                            ],
+                        ],
+                    ],
+                    'firmware' => [
+                        'type' => Segment::class,
+                        'options' => [
+                            'route' => '/firmware[/action-:action][/version-:version]',
+                            'constraints' => [
+                                'action' => '[a-zA-Z][a-zA-Z0-9_-]*',
+                                'number' => '[a-zA-Z0-9_-]*',
+                                'version' => '[a-zA-Z0-9_-]*',
+                            ],
+                            'defaults' => [
+                                'controller'    => FirmwareController::class,
                                 'action'        => 'index',
                             ],
                         ],
@@ -76,11 +112,14 @@ return [
         'factories' => [
             ApiController::class => LazyControllerAbstractFactory::class,
             BackendController::class => LazyControllerAbstractFactory::class,
+            FlashController::class => LazyControllerAbstractFactory::class,
+            FirmwareController::class => LazyControllerAbstractFactory::class,
+            ReaderController::class => LazyControllerAbstractFactory::class
         ],
     ],
     'service_manager' => [
         'factories' => [
-            // BackendLogManager::class => BackendLogManagerFactory::class,
+            CardService::class => CardServiceFactory::class,
         ],
     ],
 

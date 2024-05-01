@@ -1,0 +1,17 @@
+<?php
+$this->headTitle($title = 'delete a company')->setSeparator(" on ");
+$form->prepare();
+?>
+<h1><?= $title ?></h1>
+<?= $this->form()->openTag($form); ?>
+<div class="table-resp">
+    <p>do you really want to delete the company?</p>
+    <?= count($form->getMessages()) ? $this->FormErrorMessage(var_export($form->getMessages(), true)) : ""; ?>
+    <div class="form-group">
+        <?= $this->formElement($form->get('id')); ?>
+        <?= $this->formElement($form->get('csrf')); ?>
+        <?= $this->formElement($form->get('submit')); ?>
+        <?= $this->FormErrorMessage($this->formElementErrors($form->get('submit'))); ?>
+    </div>
+    <?= $this->form()->closeTag($form); ?>
+</div>

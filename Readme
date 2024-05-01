@@ -17,3 +17,7 @@ J2          -
 TX          GPIO27
 J1          -
 VCC         5V
+
+configure MySQL Server in the config/autoload/doctrine.global.php file using the example file
+
+create the db using "php vendor/doctrine/doctrine-module/bin/doctrine-module.php orm:schema-tool:update --force"

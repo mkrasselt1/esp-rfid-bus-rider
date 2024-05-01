@@ -1,0 +1,65 @@
+<?php
+
+use Rider\Entity\BusRoute;
+use Rider\Entity\BusStop;
+
+$this->headTitle($title = 'lists all bus routes')->setSeparator(" for ");
+?>
+<h1>
+    <?= $title ?>
+    <a class="btn btn-primary" href="<?= $this->url("routes", ["action" => "add"]) ?>">
+        <i class="bi bi-signpost-split"></i>
+        <i class="bi-plus-circle"></i>
+    </a>
+</h1>
+<div class="table-resp">
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>name</th>
+                <th>status</th>
+                <th>stops</th>
+                <th>date created/date modified</th>
+                <th>actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            <?php
+
+            if (isset($busRoutes) && is_array($busRoutes)) {
+                /**
+                 * @var BusRoute $busRoute
+                 */
+                foreach ($busRoutes as $busRoute) {
+            ?>
+                    <tr>
+                        <td><?= $busRoute->getName(); ?></td>
+                        <td><?= $busRoute->getStatusAsString(); ?></td>
+                        <td>
+                            <ul>
+                                <?= implode(PHP_EOL, $busRoute->getBusStops()->map(function (BusStop $bs) {
+                                    return  "<li>" . $bs->getName() . "</li>\n\r";
+                                })->toArray()); ?>
+                            </ul>
+                            <a class="btn btn-primary btn-sm" href="<?= $this->url("routes", ["action" => "addStop", "id" => $busRoute->getId()]) ?>">
+                                <i class="bi bi-sign-stop"></i>
+                                <i class="bi-plus-circle"></i> add stop
+                            </a>
+                        </td>
+                        <td>
+                            <?= $busRoute->getDateCreated()->format("H:i:s d.m.Y") ?>/
+                            <?= $busRoute->getDateModified()->format("H:i:s d.m.Y") ?>
+                        </td>
+                        <td>
+                            <a class="btn btn-primary" href="<?= $this->url("routes", ["action" => "edit", "id" => $busRoute->getId()]) ?>">
+                                <i class="bi bi-pencil-square"></i> edit</a>
+                            <a class="btn btn-primary" href="<?= $this->url("routes", ["action" => "delete", "id" => $busRoute->getId()]) ?>">
+                                <i class="bi bi-trash"></i>delete</a>
+                        </td>
+                    </tr>
+            <?php }
+            }
+            ?>
+        </tbody>
+    </table>
+</div>

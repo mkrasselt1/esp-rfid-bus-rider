@@ -1,16 +1,16 @@
 <?php
 
-namespace Reader\Controller;
+namespace Rider\Controller;
 
 use Laminas\Mvc\Controller\AbstractActionController;
 use Doctrine\ORM\EntityManager;
 use Laminas\Http\Request;
-use Reader\Entity\Reader;
-use Reader\Form\ReaderAddForm;
-use Reader\Form\ReaderEditForm;
+use Rider\Entity\Employee;
+use Rider\Form\EmployeeAddForm;
+use Rider\Form\EmployeeEditForm;
 use Rider\Form\DeleteForm;
 
-class ReaderController extends AbstractActionController
+class RiderController extends AbstractActionController
 {
     /**
      * Constructor is used for injecting dependencies into the controller.
@@ -30,28 +30,26 @@ class ReaderController extends AbstractActionController
     public function indexAction()
     {
         return [
-            "readers" => $this->entityManager->getRepository(Reader::class)->findAll()
+            "riders" => $this->entityManager->getRepository(Employee::class)->findAll()
         ];
     }
 
     public function addAction()
     {
-        $newCompany = new Reader();
-        $form = new ReaderAddForm($this->entityManager, "add-reader");
-        $form->bind($newCompany);
+        $newEmployee = new Employee();
+        $form = new EmployeeAddForm($this->entityManager, "add-employee");
+        $form->bind($newEmployee);
 
         // Check if user has submitted the form
         if ($this->getHTTPRequest()->isPost()) {
-
             // Fill in the form with POST data
             $form->setData($this->params()->fromPost());
             // Validate form
             if ($form->isValid()) {
-
-                $this->entityManager->persist($newCompany);
+                $this->entityManager->persist($newEmployee);
                 $this->entityManager->flush();
-                $this->flashMessenger()->addSuccessMessage('reader added successfully');
-                return $this->redirect()->toRoute('reader', ['action' => 'index']);
+                $this->flashMessenger()->addSuccessMessage('rider added successfully');
+                return $this->redirect()->toRoute('rider/rider', ['action' => 'index']);
             }
         }
         return [
@@ -61,12 +59,12 @@ class ReaderController extends AbstractActionController
 
     public function editAction()
     {
-        $companyId = (int) $this->params()->fromRoute('id', 0);
-        /** @var Company */
-        $company = $this->entityManager->find(Reader::class, $companyId);
+        $EmployeeId = (int) $this->params()->fromRoute('id', 0);
+        /** @var Employee */
+        $Employee = $this->entityManager->find(Employee::class, $EmployeeId);
 
-        $form = new ReaderEditForm($this->entityManager, "edit-Company");
-        $form->bind($company);
+        $form = new EmployeeEditForm($this->entityManager, "edit-Employee");
+        $form->bind($Employee);
 
         // Check if user has submitted the form
         if ($this->getHTTPRequest()->isPost()) {
@@ -77,8 +75,8 @@ class ReaderController extends AbstractActionController
             if ($form->isValid()) {
 
                 $this->entityManager->flush();
-                $this->flashMessenger()->addSuccessMessage('company changed successfully');
-                return $this->redirect()->toRoute('company', ['action' => 'index']);
+                $this->flashMessenger()->addSuccessMessage('rider changed successfully');
+                return $this->redirect()->toRoute('rider', ['action' => 'index']);
             }
         }
         return [
@@ -88,9 +86,9 @@ class ReaderController extends AbstractActionController
 
     public function deleteAction()
     {
-        $companyId = (int) $this->params()->fromRoute('id', 0);
-        /** @var Company */
-        $company = $this->entityManager->find(Reader::class, $companyId);
+        $EmployeeId = (int) $this->params()->fromRoute('id', 0);
+        /** @var Employee */
+        $Employee = $this->entityManager->find(Employee::class, $EmployeeId);
 
         $form = new DeleteForm();
 
@@ -101,10 +99,10 @@ class ReaderController extends AbstractActionController
             $form->setData($this->params()->fromPost());
             // Validate form
             if ($form->isValid()) {
-                $company->setStatus(Reader::STATUS_RETIRED);
+                $Employee->setStatus(Employee::STATUS_RETIRED);
                 $this->entityManager->flush();
-                $this->flashMessenger()->addSuccessMessage('reader deleted successfully');
-                return $this->redirect()->toRoute('reader', ['action' => 'index']);
+                $this->flashMessenger()->addSuccessMessage('rider deleted successfully');
+                return $this->redirect()->toRoute('rider', ['action' => 'index']);
             }
         }
         return [

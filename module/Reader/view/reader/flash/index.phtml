@@ -1,0 +1,31 @@
+<?php
+$headTitle = "Firmware Install";
+?>
+<h1 class="cover-heading">install the firmware to esp32 board</h1>
+<p class="lead">Connect the board using usb-c and open this page using google chrome or edge</p>
+<esp-web-install-button manifest="<?= $this->url("reader/flash", ["action" => "manifest"]); ?>">
+    <button slot="activate">install/update</button>
+    <span slot="unsupported">your browser doesn't support webSerial - use edge or google chrome</span>
+    <span slot="not-allowed">this service works only on ssl encrypted websites - make shure this url starts with https://</span>
+</esp-web-install-button>
+<script type="module" src="https://unpkg.com/esp-web-tools@10.0.1/dist/web/install-button.js?module"></script>
+<hr>
+<p>
+    after flashing push the button right to the usb port and connect to the WiFi shown with the qr code on the
+    display - after connection use the second qr code to set the backend URL
+</p>
+<pre>
+    <?= $this->url("api/backend", [], ["force_canonical" => true]) ?>
+</pre>
+<p>
+    and the token for this device.
+    after that use serial console and type
+</p>
+<pre>
+    iconUpdate
+</pre>
+<p> to update the icons for the system. Then connect the reader-hardware like:
+</p>
+<pre>
+    <?= file_get_contents("./Readme") ?>
+</pre>

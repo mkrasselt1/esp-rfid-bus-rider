@@ -1,12 +1,12 @@
 <?php
 
-namespace Site\Controller;
+namespace Reader\Controller;
 
 use Laminas\Mvc\Controller\AbstractActionController;
 use Doctrine\ORM\EntityManager;
-use Laminas\Http\Request;
+use Laminas\View\Model\JsonModel;
 
-class IndexController extends AbstractActionController
+class FirmwareController extends AbstractActionController
 {
     /**
      * Constructor is used for injecting dependencies into the controller.
@@ -25,12 +25,6 @@ class IndexController extends AbstractActionController
 
     public function indexAction()
     {
-        return [        
-        ];
-    }
-    
-    private function getHTTPRequest(): Request
-    {
-        return $this->getRequest();
-    }
+        return [];
+    }    
 }

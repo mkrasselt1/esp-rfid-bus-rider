@@ -1,16 +1,16 @@
 <?php
 
-namespace Reader\Controller;
+namespace Rider\Controller;
 
 use Laminas\Mvc\Controller\AbstractActionController;
 use Doctrine\ORM\EntityManager;
 use Laminas\Http\Request;
-use Reader\Entity\Reader;
-use Reader\Form\ReaderAddForm;
-use Reader\Form\ReaderEditForm;
+use Rider\Entity\Company;
+use Rider\Form\CompanyAddForm;
+use Rider\Form\CompanyEditForm;
 use Rider\Form\DeleteForm;
 
-class ReaderController extends AbstractActionController
+class CompanyController extends AbstractActionController
 {
     /**
      * Constructor is used for injecting dependencies into the controller.
@@ -30,14 +30,14 @@ class ReaderController extends AbstractActionController
     public function indexAction()
     {
         return [
-            "readers" => $this->entityManager->getRepository(Reader::class)->findAll()
+            "companies" => $this->entityManager->getRepository(Company::class)->findAll()
         ];
     }
 
     public function addAction()
     {
-        $newCompany = new Reader();
-        $form = new ReaderAddForm($this->entityManager, "add-reader");
+        $newCompany = new Company();
+        $form = new CompanyAddForm($this->entityManager, "add-Company");
         $form->bind($newCompany);
 
         // Check if user has submitted the form
@@ -50,8 +50,8 @@ class ReaderController extends AbstractActionController
 
                 $this->entityManager->persist($newCompany);
                 $this->entityManager->flush();
-                $this->flashMessenger()->addSuccessMessage('reader added successfully');
-                return $this->redirect()->toRoute('reader', ['action' => 'index']);
+                $this->flashMessenger()->addSuccessMessage('Company added successfully');
+                return $this->redirect()->toRoute('company', ['action' => 'index']);
             }
         }
         return [
@@ -63,9 +63,9 @@ class ReaderController extends AbstractActionController
     {
         $companyId = (int) $this->params()->fromRoute('id', 0);
         /** @var Company */
-        $company = $this->entityManager->find(Reader::class, $companyId);
+        $company = $this->entityManager->find(Company::class, $companyId);
 
-        $form = new ReaderEditForm($this->entityManager, "edit-Company");
+        $form = new CompanyEditForm($this->entityManager, "edit-Company");
         $form->bind($company);
 
         // Check if user has submitted the form
@@ -90,7 +90,7 @@ class ReaderController extends AbstractActionController
     {
         $companyId = (int) $this->params()->fromRoute('id', 0);
         /** @var Company */
-        $company = $this->entityManager->find(Reader::class, $companyId);
+        $company = $this->entityManager->find(Company::class, $companyId);
 
         $form = new DeleteForm();
 
@@ -101,10 +101,10 @@ class ReaderController extends AbstractActionController
             $form->setData($this->params()->fromPost());
             // Validate form
             if ($form->isValid()) {
-                $company->setStatus(Reader::STATUS_RETIRED);
+                $company->setStatus(Company::STATUS_RETIRED);
                 $this->entityManager->flush();
-                $this->flashMessenger()->addSuccessMessage('reader deleted successfully');
-                return $this->redirect()->toRoute('reader', ['action' => 'index']);
+                $this->flashMessenger()->addSuccessMessage('company deleted successfully');
+                return $this->redirect()->toRoute('company', ['action' => 'index']);
             }
         }
         return [

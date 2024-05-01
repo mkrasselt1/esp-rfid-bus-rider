@@ -3,22 +3,32 @@
 namespace Rider\Entity;
 
 use DateTime;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\ORM\EntityRepository;
 
 /**
- * This class represents a registered card.
+ * This class represents a registered company.
  * @ORM\Entity()
- * @ORM\Table(name="card")
+ * @ORM\Table(name="Company")
  */
-class Card extends EntityRepository
+class Company extends EntityRepository
 {
-    // Card status constants.
-    const STATUS_UNINITIATED  = 0; // Not yet existing card.
-    const STATUS_ACTIVE       = 1; // active card.
-    const STATUS_INACTIVE     = 2; // inactive card.
-    const STATUS_DISABLED     = 3; // disabled card.
-    const STATUS_RETIRED      = 4; // retired card.
+    // company status constants.
+    const STATUS_UNINITIATED  = 0; // Not yet existing company.
+    const STATUS_ACTIVE       = 1; // active company.
+    const STATUS_INACTIVE     = 2; // inactive company.
+    const STATUS_DISABLED     = 3; // disabled company.
+    const STATUS_RETIRED      = 4; // retired company.
+
+    const STATUS_LIST = [
+        self::STATUS_UNINITIATED  => "Not yet existing",
+        self::STATUS_ACTIVE       => "active",
+        self::STATUS_INACTIVE     => "inactive",
+        self::STATUS_DISABLED     => "disabled",
+        self::STATUS_RETIRED      => "retired",
+    ];
 
     /**
      * @var integer
@@ -27,11 +37,6 @@ class Card extends EntityRepository
      * @ORM\Column(type="integer")
      */
     protected $id;
-
-    /** 
-     * @ORM\Column(name="uid", type="string", length=70)  
-     */
-    protected $uid;
 
     /** 
      * @ORM\Column(name="name")  
@@ -55,16 +60,9 @@ class Card extends EntityRepository
     protected $dateModified;
 
     /**
-     * @ORM\ManyToOne(targetEntity="Employee", inversedBy="cards", cascade={"all"})
-     * @ORM\JoinColumn(name="employee", referencedColumnName="id")
+     * @ORM\OneToMany(targetEntity="Employee", mappedBy="company", cascade={"all"})
      */
-    protected $employee;
-
-    /**
-     * @ORM\ManyToOne(targetEntity="Ride", cascade={"all"})
-     */
-    protected $rides;
-
+    protected $employees;
 
     /**
      * @ORM\PrePersist
@@ -81,10 +79,10 @@ class Card extends EntityRepository
         $this->setDateCreated();
         $this->setDateModified();
         $this->setStatus(self::STATUS_ACTIVE);
-        $this->setToken(bin2hex(random_bytes(32)));
+        $this->employees = new ArrayCollection();
     }
     /**
-     * Returns card id.
+     * Returns company ID.
      * @return integer
      */
     public function getId()
@@ -93,30 +91,12 @@ class Card extends EntityRepository
     }
 
     /**
-     * Sets card id. 
+     * Sets company ID. 
      * @param int $id    
      */
     public function setId($id)
     {
         $this->id = $id;
-    }
-
-    /**
-     * Returns token.     
-     * @return string
-     */
-    public function getToken()
-    {
-        return $this->uid;
-    }
-
-    /**
-     * Sets token.     
-     * @param string $token
-     */
-    public function setToken($token)
-    {
-        $this->uid = $token;
     }
 
     /**
@@ -132,28 +112,46 @@ class Card extends EntityRepository
      * Sets full name.
      * @param string $name
      */
-    public function setName($name):self
+    public function setName($name): self
     {
         $this->name = $name;
         return $this;
     }
 
     /**
-     * returns associates user.
-     * @return Employee
+     * returns associates employees.
+     * @return ArrayCollection
      */
-    public function getEmployee()
+    public function getEmployees()
     {
-        return $this->employee;
+        return $this->employees;
     }
 
     /**
-     * Sets associated user.
-     * @param Employee $employee
+     * Sets associated employees.
+     * @param company $company
      */
-    public function setEmployee($employee)
+    public function setEmployees(Collection $employees)
     {
-        $this->employee = $employee;
+        $this->employees = $employees;
+    }
+
+    /**
+     * add selected employee.
+     * @param company $company
+     */
+    public function addEmployees(Employee $employee)
+    {
+        $this->getEmployees()->add($employee);
+    }
+
+    /**
+     * remove selected employee.
+     * @param company $company
+     */
+    public function removeEmployee(Collection $employee)
+    {
+        $this->getEmployees()->removeElement($employee);
     }
 
     /**
@@ -203,17 +201,11 @@ class Card extends EntityRepository
      */
     public static function getStatusList()
     {
-        return [
-            self::STATUS_UNINITIATED => 'Nicht Initialisiert',
-            self::STATUS_ACTIVE => 'Aktiv',
-            self::STATUS_INACTIVE => 'Inaktiv',
-            self::STATUS_DISABLED => 'Deaktiviert',
-            self::STATUS_RETIRED => 'Beendet',
-        ];
+        return self::STATUS_LIST;
     }
 
     /**
-     * Returns user status as string.
+     * Returns company status as string.
      * @return string
      */
     public function getStatusAsString()
@@ -222,7 +214,7 @@ class Card extends EntityRepository
         if (isset($list[$this->status]))
             return $list[$this->status];
 
-        return 'Unbekannt';
+        return self::STATUS_LIST[self::STATUS_UNINITIATED];
     }
 
     /**
@@ -235,7 +227,7 @@ class Card extends EntityRepository
     }
 
     /**
-     * Returns the date of user creation.
+     * Returns the date of company creation.
      * @return DateTime     
      */
     public function getDateCreated(): \DateTime
@@ -244,7 +236,7 @@ class Card extends EntityRepository
     }
 
     /**
-     * Sets the date when this user was created.
+     * Sets the date when this company was created.
      * @param DateTime $dateCreated     
      */
     public function setDateCreated(DateTime $dateCreated = null)
@@ -256,7 +248,16 @@ class Card extends EntityRepository
     }
 
     /**
-     * Sets the date when this user was changed
+     * Returns the date of last change.
+     * @return DateTime     
+     */
+    public function getDateModified(): \DateTime
+    {
+        return $this->dateModified;
+    }
+
+    /**
+     * Sets the date when this company was changed
      * @param DateTime $dateModified     
      */
     public function setDateModified(DateTime $dateModified = null)

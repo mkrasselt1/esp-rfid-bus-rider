@@ -1,0 +1,59 @@
+<?php
+
+use Rider\Entity\Company;
+use Rider\Entity\Employee;
+
+$this->headTitle($title = 'lists all riders')->setSeparator(" for ");
+?>
+<h1>
+    <?= $title ?>
+    <a class="btn btn-primary" href="<?= $this->url("rider/rider", ["action" => "add"]) ?>">
+        <i class="bi bi-person-arms-up"></i>
+        <i class="bi bi-plus-circle"></i></a>
+</h1>
+<div class="table-resp">
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>name</th>
+                <th>status</th>
+                <th>company</th>
+                <th>bus route / stop</th>
+                <th>date created/date modified</th>
+                <th>actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            <?php
+
+            if (isset($riders) && is_array($riders)) {
+                /**
+                 * @var Employee $rider
+                 */
+                foreach ($riders as $rider) {
+            ?>
+                    <tr>
+                        <td><?= $rider->getName(); ?></td>
+                        <td><?= $rider->getStatusAsString(); ?></td>
+                        <td><?= $rider->getCompany()?->getName() ?? "" ?></td>
+                        <td>
+                            <?= $rider->getBusStop()->getBusRoute()?->getName() ?? "" ?> /
+                            <?= $rider->getBusStop()?->getName() ?? "" ?>
+                        </td>
+                        <td>
+                            <?= $rider->getDateCreated()->format("H:i:s d.m.Y") ?>/
+                            <?= $rider->getDateModified()->format("H:i:s d.m.Y") ?>
+                        </td>
+                        <td>
+                            <a class="btn btn-primary" href="<?= $this->url("rider/rider", ["action" => "edit", "id" => $rider->getId()]) ?>">
+                                <i class="bi bi-pencil-square"></i> edit</a>
+                            <a class="btn btn-primary" href="<?= $this->url("rider/rider", ["action" => "delete", "id" => $rider->getId()]) ?>">
+                                <i class="bi bi-trash"></i>delete</a>
+                        </td>
+                    </tr>
+            <?php }
+            }
+            ?>
+        </tbody>
+    </table>
+</div>

@@ -1,4 +1,5 @@
 <?php
+
 namespace Site;
 
 use Laminas\I18n\Translator\Translator;
@@ -7,10 +8,12 @@ use Site\Controller\IndexController;
 use Laminas\Mvc\Controller\LazyControllerAbstractFactory;
 use Laminas\Mvc\I18n\Translator as I18nTranslator;
 use Laminas\Router\Http\Literal;
+use Laminas\ServiceManager\Factory\InvokableFactory;
 use Site\Service\Factory\NavManagerFactory;
 use Site\Service\NavManager;
 use Site\View\Helper\Factory\MenuFactory;
 use Site\View\Helper\Menu;
+use Site\View\Helper\FormErrorMessage;
 
 return [
     'router' => [
@@ -62,12 +65,12 @@ return [
             'translate' => \Laminas\I18n\View\Helper\Translate::class
         ],
         'factories' => [
+            FormErrorMessage::class => InvokableFactory::class,
             Menu::class => MenuFactory::class,
-            // LocationLink::class => InvokableFactory::class,
         ],
         'aliases' => [
             'mainMenu' => Menu::class,
-            // 'LocationLink' => LocationLink::class,
+            'FormErrorMessage' => FormErrorMessage::class
         ],
     ],
     'access_filter' => [
@@ -75,7 +78,7 @@ return [
             IndexController::class => [
                 ['actions' => [
                     'index',
-               ], 'allow' => '*'],
+                ], 'allow' => '*'],
             ],
         ]
     ],
@@ -86,8 +89,8 @@ return [
         'not_found_template'       => 'error/404',
         'exception_template'       => 'error/index',
         'template_map' => [
-            'layout/layout'           => __DIR__ . '/../view/layout/layout.phtml',
-            'layout/dashboard'        => __DIR__ . '/../view/layout/dashboard.phtml',
+            // 'layout/layout'           => __DIR__ . '/../view/layout/layout.phtml',
+            'layout/layout'        => __DIR__ . '/../view/layout/dashboard.phtml',
             'layout/api'              => __DIR__ . '/../view/layout/api.phtml',
             'error/404'               => __DIR__ . '/../view/error/404.phtml',
             'error/index'             => __DIR__ . '/../view/error/index.phtml',

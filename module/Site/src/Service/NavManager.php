@@ -3,7 +3,6 @@
 namespace Site\Service;
 
 use Laminas\I18n\Translator\Translator;
-use Laminas\Mvc\I18n\Translator as I18nTranslator;
 use Laminas\Session\Container;
 use Laminas\View\Helper\Url;
 use User\Service\UserManager;
