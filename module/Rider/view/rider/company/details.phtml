@@ -1,13 +1,15 @@
 <?php
 
 use Rider\Entity\Card;
+use Rider\Entity\Company;
 use Rider\Entity\Employee;
 
-$this->headTitle($title = 'lists all riders')->setSeparator(" for ");
+$this->headTitle($title = 'company details')->setSeparator(" for ");
+/** @var Company $company */
 ?>
 <h1>
     <?= $title ?>
-    <a class="btn btn-primary" href="<?= $this->url("rider/rider", ["action" => "add"]) ?>">
+    <a class="btn btn-primary" href="<?= $this->url("rider/rider", ["action" => "add", "id" => $company->getId()]) ?>">
         <i class="bi bi-person-arms-up"></i>
         <i class="bi bi-plus-circle"></i></a>
 </h1>
@@ -25,8 +27,8 @@ $this->headTitle($title = 'lists all riders')->setSeparator(" for ");
         </thead>
         <tbody>
             <?php
-
-            if (isset($riders) && is_array($riders)) {
+            $riders = $company->getEmployees();
+            if (isset($riders) && $riders->count()) {
                 /**
                  * @var Employee $rider
                  */

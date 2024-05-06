@@ -19,6 +19,16 @@ $busRouteFieldset = $form->get("busRoute");
                 </td>
             </tr>
             <tr>
+                <th><?= $this->formLabel($cardFieldset->get('company')); ?></th>
+                <td>
+                    <div class="form-group">
+                        <?= $this->formElement($cardFieldset->get('company')); ?>
+                        <?= $this->FormErrorMessage($this->formElementErrors($cardFieldset->get('company'))); ?>
+                    </div>
+
+                </td>
+            </tr>
+            <tr>
                 <th><?= $this->formLabel($busRouteFieldset->get('status')); ?></th>
                 <td>
                     <div class="form-group">

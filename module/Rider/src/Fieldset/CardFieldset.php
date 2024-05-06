@@ -4,7 +4,6 @@ namespace Rider\Fieldset;
 
 use Doctrine\Laminas\Hydrator\DoctrineObject as DoctrineHydrator;
 use Doctrine\ORM\EntityManager;
-use DoctrineModule\Form\Element\ObjectSelect;
 use Laminas\Filter\StringTrim;
 use Laminas\Filter\StripNewlines;
 use Laminas\Filter\StripTags;
@@ -14,10 +13,9 @@ use Laminas\Form\Element\Text;
 use Laminas\Form\Fieldset;
 use Laminas\InputFilter\InputFilterProviderInterface;
 use Laminas\Validator\StringLength;
-use Rider\Entity\BusRoute;
-use Rider\Entity\Company;
+use Rider\Entity\Card;
 
-class BusRouteFieldset extends Fieldset implements InputFilterProviderInterface
+class CardFieldset extends Fieldset implements InputFilterProviderInterface
 {
     /**
      * Entity Manager
@@ -31,7 +29,7 @@ class BusRouteFieldset extends Fieldset implements InputFilterProviderInterface
 
         $this->entityManager = $entityManager;
         $this->setHydrator(new DoctrineHydrator($this->entityManager))
-            ->setObject(new BusRoute());
+            ->setObject(new Card());
 
         $this->init();
     }
@@ -49,7 +47,7 @@ class BusRouteFieldset extends Fieldset implements InputFilterProviderInterface
             'name' => 'name',
             'attributes' => [
                 'class' => 'form-control',
-                'title' => 'name of the BusRoute',
+                'title' => 'name of the card',
             ],
             'options' => [
                 'label' => 'name'
@@ -57,40 +55,36 @@ class BusRouteFieldset extends Fieldset implements InputFilterProviderInterface
         ]);
 
         $this->add([
-            'type' => ObjectSelect::class,
+            'type' => Text::class,
+            'name' => 'number',
             'attributes' => [
                 'class' => 'form-control',
+                'title' => 'number of the card',
             ],
             'options' => [
-                'label' => 'assign company',
-                'object_manager' => $this->entityManager,
-                'target_class'   => Company::class,
-                //'property'       => 'id',
-                'label_generator' => function (Company $company) {
-                    return $company->getName();
-                },
-                'is_method'      => true,
-                'find_method'    => [
-                    'name'   => 'findBy',
-                    'params' => [
-                        'criteria' => [
-                            'status' => Company::STATUS_ACTIVE,
-                        ]
-                    ],
-                ],
-                'display_empty_item' => true,
-                'empty_item_label'   => '-no company assigned-',
-            ],
-            'name' => 'company'
+                'label' => 'number of card'
+            ]
         ]);
-        
+
+        $this->add([
+            'type' => Text::class,
+            'name' => 'UID',
+            'attributes' => [
+                'class' => 'form-control',
+                'title' => 'uid of chip',
+            ],
+            'options' => [
+                'label' => 'card UID'
+            ]
+        ]);
+
         $this->add([
             'type' => Select::class,
             'name' => 'status',
             'options' => [
                 'label' => 'status',
-                // 'empty_option' => BusRoute::STATUS_LIST[BusRoute::STATUS_UNINITIATED],
-                'value_options' => BusRoute::STATUS_LIST,
+                // 'empty_option' => Card::STATUS_LIST[Card::STATUS_UNINITIATED],
+                'value_options' => Card::STATUS_LIST,
             ],
             'attributes' => [
                 'readonly' => false,

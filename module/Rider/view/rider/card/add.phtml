@@ -1,0 +1,107 @@
+<?php
+$this->headTitle($title = "add rfid card ")->setSeparator(" for ");
+
+$form->prepare();
+$cardFieldset = $form->get('card');
+?>
+<h1><?= $title ?></h1>
+<div>
+    <div class="card card-body">
+        <?= $this->form()->openTag($form); ?>
+        <div class="table-resp">
+            <table class="table table-striped">
+                <tbody>
+                    <tr>
+                        <th><?= $this->formLabel($cardFieldset->get('number')); ?></th>
+                        <td>
+                            <div class="form-group">
+                                <?= $this->formElement($cardFieldset->get('number')); ?>
+                                <?= $this->FormErrorMessage($this->formElementErrors($cardFieldset->get('number'))); ?>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th><?= $this->formLabel($cardFieldset->get('name')); ?></th>
+                        <td>
+                            <div class="form-group">
+                                <?= $this->formElement($cardFieldset->get('name')); ?>
+                                <?= $this->FormErrorMessage($this->formElementErrors($cardFieldset->get('name'))); ?>
+                                <input type="button" id="scan" value="Scannen" style="display:none;" />
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th><?= $this->formLabel($cardFieldset->get('UID')); ?></th>
+                        <td>
+                            <div class="form-group">
+                                <?= $this->formElement($cardFieldset->get('UID')); ?>
+                                <?= $this->FormErrorMessage($this->formElementErrors($cardFieldset->get('UID'))); ?>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>Erweiterte Funktionen</th>
+                        <td>
+                            <button type="button" class="btn btn-secondary" onClick="reverseUID();">
+                                UID umkehren
+                            </button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            <?= $this->formElement($form->get('csrf')); ?>
+            <div class="form-group">
+                <?= $this->formElement($form->get('submit')); ?>
+                <?= $this->FormErrorMessage($this->formElementErrors($form->get('submit'))); ?>
+            </div>
+            <?= $this->form()->closeTag($form); ?>
+            <div id="unsupportedDevice" style="display:none;">scanning that chip on your phone only works on android using chrome/edge browser</div>
+        </div>
+    </div>
+</div>
+<script>
+    function reverseUID() {
+        let UID = $("input[name='card[UID]']").val();
+        $("input[name='card[UID]']").val(UID.match(/[a-fA-F0-9]{2}/g).reverse().join(''));
+    }
+    try {
+        const ndef = new NDEFReader();
+        async function startScanning() {
+            try {
+                await ndef.scan();
+
+                ndef.addEventListener("readingerror", () => {
+                    console.log("Argh! Cannot read data from the NFC tag. Try another one?");
+                });
+
+                ndef.addEventListener("reading", ({
+                    message,
+                    serialNumber
+                }) => {
+                    $("input[name='card[UID]']").val(serialNumber.replaceAll(":", ""));
+                });
+            } catch (error) {
+                console.log("Argh! " + error);
+            }
+        }
+
+        $().ready(async () => {
+            const nfcPermissionStatus = await navigator.permissions.query({
+                name: "nfc"
+            });
+            if (nfcPermissionStatus.state === "granted") {
+                // NFC access was previously granted, so we can start NFC scanning now.
+                startScanning();
+            } else {
+                // Show a "scan" button.
+                $("#scan").show();
+            }
+        });
+        $('#scan').click(async () => {
+            startScanning()
+            $("#scan").hide();
+        });
+    } catch (error) {
+        $("#unsupportedDevice").show();
+    }
+</script>

@@ -7,10 +7,13 @@ use Laminas\I18n\Translator\TranslatorServiceFactory;
 use Site\Controller\IndexController;
 use Laminas\Mvc\Controller\LazyControllerAbstractFactory;
 use Laminas\Mvc\I18n\Translator as I18nTranslator;
+use Laminas\Mvc\Service\ViewHelperManagerFactory;
 use Laminas\Router\Http\Literal;
 use Laminas\ServiceManager\Factory\InvokableFactory;
 use Site\Service\Factory\NavManagerFactory;
 use Site\Service\NavManager;
+use Site\View\Helper\CompanyMenu;
+use Site\View\Helper\Factory\CompanyMenuFactory;
 use Site\View\Helper\Factory\MenuFactory;
 use Site\View\Helper\Menu;
 use Site\View\Helper\FormErrorMessage;
@@ -66,11 +69,13 @@ return [
         ],
         'factories' => [
             FormErrorMessage::class => InvokableFactory::class,
+            CompanyMenu::class => CompanyMenuFactory::class,
             Menu::class => MenuFactory::class,
         ],
         'aliases' => [
             'mainMenu' => Menu::class,
-            'FormErrorMessage' => FormErrorMessage::class
+            'FormErrorMessage' => FormErrorMessage::class,
+            'CompanyMenu' => CompanyMenu::class
         ],
     ],
     'access_filter' => [

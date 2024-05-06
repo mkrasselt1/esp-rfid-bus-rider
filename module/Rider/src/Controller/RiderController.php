@@ -5,6 +5,7 @@ namespace Rider\Controller;
 use Laminas\Mvc\Controller\AbstractActionController;
 use Doctrine\ORM\EntityManager;
 use Laminas\Http\Request;
+use Rider\Entity\Company;
 use Rider\Entity\Employee;
 use Rider\Form\EmployeeAddForm;
 use Rider\Form\EmployeeEditForm;
@@ -36,7 +37,13 @@ class RiderController extends AbstractActionController
 
     public function addAction()
     {
+        //get company preset
+        $CompanyId = (int) $this->params()->fromRoute('id', 0);
+        /** @var Company */
+        $Company = $this->entityManager->find(Company::class, $CompanyId);
+
         $newEmployee = new Employee();
+        $newEmployee->setCompany($Company);
         $form = new EmployeeAddForm($this->entityManager, "add-employee");
         $form->bind($newEmployee);
 
@@ -63,17 +70,19 @@ class RiderController extends AbstractActionController
         /** @var Employee */
         $Employee = $this->entityManager->find(Employee::class, $EmployeeId);
 
-        $form = new EmployeeEditForm($this->entityManager, "edit-Employee");
+        $form = new EmployeeEditForm(
+            entityManager: $this->entityManager,
+            employee: $Employee,
+        );
         $form->bind($Employee);
 
         // Check if user has submitted the form
         if ($this->getHTTPRequest()->isPost()) {
 
             // Fill in the form with POST data
-            $form->setData($this->params()->fromPost());
+            $form->setData($data = $this->params()->fromPost());
             // Validate form
             if ($form->isValid()) {
-
                 $this->entityManager->flush();
                 $this->flashMessenger()->addSuccessMessage('rider changed successfully');
                 return $this->redirect()->toRoute('rider', ['action' => 'index']);

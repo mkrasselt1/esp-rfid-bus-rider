@@ -6,6 +6,7 @@ use Doctrine\ORM\Mapping\Driver\AnnotationDriver;
 use Laminas\Mvc\Controller\LazyControllerAbstractFactory;
 use Laminas\Router\Http\Segment;
 use Rider\Controller\BusRouteController;
+use Rider\Controller\CardController;
 use Rider\Controller\CompanyController;
 use Rider\Controller\RiderController;
 
@@ -65,23 +66,20 @@ return [
                 ],
                 'may_terminate' => true,
                 'child_routes' => [
-                    // 'card' => [
-                    //     'type' => Segment::class,
-                    //     'options' => [
-                    //         'route' => '/rider[/action-:action][/number-:number]',
-                    //         'constraints' => [
-                    //             'action' => '[a-zA-Z][a-zA-Z0-9_-]*',
-                    //             'number' => '[a-zA-Z0-9_-]*',
-                    //             'terminal'   => '[0-9]*',
-                    //             'page'  => '[0-9]*',
-                    //             'size'  => '[0-9]*',
-                    //         ],
-                    //         'defaults' => [
-                    //             'controller'    => RiderController::class,
-                    //             'action'        => 'index',
-                    //         ],
-                    //     ],
-                    // ],
+                    'card' => [
+                        'type' => Segment::class,
+                        'options' => [
+                            'route' => '/card[/action-:action[/id-:id]]',
+                            'constraints' => [
+                                'action' => '[a-zA-Z][a-zA-Z0-9_-]*',
+                                'id' => '[a-zA-Z0-9_-]*',
+                            ],
+                            'defaults' => [
+                                'controller'    => CardController::class,
+                                'action'        => 'index',
+                            ],
+                        ],
+                    ],
                     'rider' => [
                         'type' => Segment::class,
                         'options' => [
@@ -105,6 +103,7 @@ return [
             CompanyController::class => LazyControllerAbstractFactory::class,
             BusRouteController::class => LazyControllerAbstractFactory::class,
             RiderController::class => LazyControllerAbstractFactory::class,
+            CardController::class => LazyControllerAbstractFactory::class,
         ],
     ],
     'service_manager' => [

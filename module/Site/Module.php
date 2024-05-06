@@ -106,8 +106,8 @@ class Module
         $serviceManager = $event->getApplication()->getServiceManager();
         // Get the instance of AuthManager service.
         $sessionManager = $serviceManager->get(SessionManager::class);
+        $this->forgetInvalidSession($sessionManager);
         return; //TODO add Authorisation
-        // $this->forgetInvalidSession($sessionManager);
 
         // /** @var AuthManager */
         // $authManager = $serviceManager->get(AuthManager::class);

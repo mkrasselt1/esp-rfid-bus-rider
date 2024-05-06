@@ -7,32 +7,27 @@ use Laminas\Form\Element\Button;
 use Laminas\Form\Element\Csrf;
 use Laminas\Form\Form;
 use Doctrine\Laminas\Hydrator\DoctrineObject as DoctrineHydrator;
-use Rider\Entity\Employee;
-use Rider\Fieldset\EmployeeFieldset;
+use Rider\Fieldset\CardFieldset;
 
-class EmployeeEditForm extends Form
+class CardEditForm extends Form
 {
     /**
      * Constructor.     
      */
-    public function __construct(EntityManager $entityManager, ?Employee $employee = null)
+    public function __construct(EntityManager $entityManager)
     {
         // Define form name
-        parent::__construct('edit-employee-form');
+        parent::__construct('edit-card-form');
 
         // Set POST method for this form
         $this->setAttribute('method', 'post');
 
         $this->setHydrator(new DoctrineHydrator($entityManager));
 
-        $Company = (new EmployeeFieldset(
-            name: "employee",
-            entityManager: $entityManager,
-            employee: $employee
-        ))
+        $Card = (new CardFieldset("card", $entityManager))
             ->setUseAsBaseFieldset(true)
-            ->setName('employee');
-        $this->add($Company);
+            ->setName('card');
+        $this->add($Card);
         $this->addElements();
     }
 

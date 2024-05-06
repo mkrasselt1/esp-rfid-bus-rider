@@ -1,7 +1,7 @@
 <?php
-$this->headTitle($title = 'edit the route')->setSeparator(" for ");
+$this->headTitle($title = 'edit the card')->setSeparator(" for ");
 $form->prepare();
-$cardFieldset = $form->get("busRoute");
+$cardFieldset = $form->get("card");
 ?>
 <h1><?= $title ?></h1>
 <?= $this->form()->openTag($form); ?>
@@ -14,16 +14,6 @@ $cardFieldset = $form->get("busRoute");
                     <div class="form-group">
                         <?= $this->formElement($cardFieldset->get('name')); ?>
                         <?= $this->FormErrorMessage($this->formElementErrors($cardFieldset->get('name'))); ?>
-                    </div>
-
-                </td>
-            </tr>
-            <tr>
-                <th><?= $this->formLabel($cardFieldset->get('company')); ?></th>
-                <td>
-                    <div class="form-group">
-                        <?= $this->formElement($cardFieldset->get('company')); ?>
-                        <?= $this->FormErrorMessage($this->formElementErrors($cardFieldset->get('company'))); ?>
                     </div>
 
                 </td>

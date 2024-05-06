@@ -177,7 +177,7 @@ class Employee extends EntityRepository
     }
 
     /**
-     * returns associates company.
+     * returns associates bus stop.
      * @return BusStop
      */
     public function getBusStop()
@@ -209,7 +209,32 @@ class Employee extends EntityRepository
      */
     public function setCards(Collection $cards)
     {
+        /** @var Card */
+        foreach ($cards as $card) {
+            $card->setEmployee($this);
+        }
         $this->cards = $cards;
+        return $this;
+    }
+
+    public function addCards(Collection $cards)
+    {
+        /** @var Card */
+        foreach ($cards as $card) {
+            $card->setEmployee($this);
+            $this->getCards()->add($card);
+        };
+        return $this;
+    }
+
+    public function removeCards(Collection $cards)
+    {
+        /** @var Card */
+        foreach ($cards as $card) {
+            $card->setEmployee(null);
+            $this->getCards()->removeElement($card);
+        };
+        return $this;
     }
 
     /**

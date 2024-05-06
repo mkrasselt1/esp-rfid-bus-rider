@@ -3,12 +3,14 @@
 namespace Rider\Entity;
 
 use DateTime;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\ORM\EntityRepository;
 
 /**
  * This class represents a registered card.
- * @ORM\Entity()
+ * @ORM\Entity(repositoryClass="CardRepository")
  * @ORM\Table(name="card")
  */
 class Card extends EntityRepository
@@ -19,6 +21,14 @@ class Card extends EntityRepository
     const STATUS_INACTIVE     = 2; // inactive card.
     const STATUS_DISABLED     = 3; // disabled card.
     const STATUS_RETIRED      = 4; // retired card.
+
+    const STATUS_LIST = [
+        self::STATUS_UNINITIATED => 'not initialized',
+        self::STATUS_ACTIVE => 'active',
+        self::STATUS_INACTIVE => 'inactive',
+        self::STATUS_DISABLED => 'deactivated',
+        self::STATUS_RETIRED => 'retired',
+    ];
 
     /**
      * @var integer
@@ -32,6 +42,11 @@ class Card extends EntityRepository
      * @ORM\Column(name="uid", type="string", length=70)  
      */
     protected $uid;
+
+    /** 
+     * @ORM\Column(name="number")  
+     */
+    protected $number;
 
     /** 
      * @ORM\Column(name="name")  
@@ -61,7 +76,7 @@ class Card extends EntityRepository
     protected $employee;
 
     /**
-     * @ORM\ManyToOne(targetEntity="Ride", cascade={"all"})
+     * @ORM\OneToMany(targetEntity="Ride", mappedBy="card", cascade={"all"})
      */
     protected $rides;
 
@@ -74,6 +89,7 @@ class Card extends EntityRepository
     public function updatedTimestamps(): void
     {
         $this->setDateModified(new \DateTime('now'));
+        $this->rides = new ArrayCollection();
     }
 
     public function __construct()
@@ -81,7 +97,8 @@ class Card extends EntityRepository
         $this->setDateCreated();
         $this->setDateModified();
         $this->setStatus(self::STATUS_ACTIVE);
-        $this->setToken(bin2hex(random_bytes(32)));
+        $this->setUID(bin2hex(random_bytes(32)));
+        $this->rides = new ArrayCollection();
     }
     /**
      * Returns card id.
@@ -102,21 +119,39 @@ class Card extends EntityRepository
     }
 
     /**
-     * Returns token.     
+     * Returns number on that card
      * @return string
      */
-    public function getToken()
+    public function getNumber()
+    {
+        return $this->number;
+    }
+
+    /**
+     * Sets the number printed on that card
+     * @param string $number
+     */
+    public function setNumber($number)
+    {
+        $this->number = $number;
+    }
+
+    /**
+     * Returns uid of card
+     * @return string
+     */
+    public function getUID()
     {
         return $this->uid;
     }
 
     /**
-     * Sets token.     
-     * @param string $token
+     * Sets uid of card
+     * @param string $uid
      */
-    public function setToken($token)
+    public function setUID($uid)
     {
-        $this->uid = $token;
+        $this->uid = $uid;
     }
 
     /**
@@ -132,7 +167,7 @@ class Card extends EntityRepository
      * Sets full name.
      * @param string $name
      */
-    public function setName($name):self
+    public function setName($name): self
     {
         $this->name = $name;
         return $this;
@@ -154,6 +189,49 @@ class Card extends EntityRepository
     public function setEmployee($employee)
     {
         $this->employee = $employee;
+    }
+
+
+    /**
+     * Get all rides made with that card
+     * @return Collection 
+     */
+    public function getRides(): Collection
+    {
+        return $this->rides;
+    }
+
+    /**
+     * sets all rides at once
+     * @param Collection $rides
+     * @return self
+     */
+    public function setRides(Collection $rides)
+    {
+        $this->rides = $rides;
+        return $this;
+    }
+
+    /**
+     * adds a single ride to the card
+     * @param Ride $ride 
+     * @return self 
+     */
+    public function addRide(Ride $ride)
+    {
+        $this->getRides()->add($ride);
+        return $this;
+    }
+
+    /**
+     * removes a single ride from the card
+     * @param Ride $ride 
+     * @return self
+     */
+    public function removeRide(Ride $ride)
+    {
+        $this->getRides()->removeElement($ride);
+        return $this;
     }
 
     /**
@@ -203,13 +281,7 @@ class Card extends EntityRepository
      */
     public static function getStatusList()
     {
-        return [
-            self::STATUS_UNINITIATED => 'Nicht Initialisiert',
-            self::STATUS_ACTIVE => 'Aktiv',
-            self::STATUS_INACTIVE => 'Inaktiv',
-            self::STATUS_DISABLED => 'Deaktiviert',
-            self::STATUS_RETIRED => 'Beendet',
-        ];
+        return self::STATUS_LIST;
     }
 
     /**
@@ -255,6 +327,15 @@ class Card extends EntityRepository
         $this->dateCreated = $dateCreated;
     }
 
+    /**
+     * Returns the date of last reader change
+     * @return DateTime     
+     */
+    public function getDateModified(): \DateTime
+    {
+        return $this->dateModified;
+    }
+    
     /**
      * Sets the date when this user was changed
      * @param DateTime $dateModified     

@@ -65,6 +65,11 @@ class BusRoute extends EntityRepository
     protected $busStops;
 
     /**
+     * @ORM\ManyToOne(targetEntity="Company", cascade={"all"})
+     */
+    protected $company;
+
+    /**
      * @ORM\PrePersist
      * @ORM\PreUpdate
      */
@@ -118,6 +123,23 @@ class BusRoute extends EntityRepository
         return $this;
     }
 
+    /**
+     * returns associates company.
+     * @return Company
+     */
+    public function getCompany()
+    {
+        return $this->company;
+    }
+
+    /**
+     * Sets associated company
+     * @param Company $company
+     */
+    public function setCompany(Company $company)
+    {
+        $this->company = $company;
+    }
 
     /**
      * returns bus stops for this route

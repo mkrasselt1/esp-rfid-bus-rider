@@ -8,7 +8,7 @@
         //->appendHttpEquiv('content-type', 'text/html;charset=UTF-8')
         ->appendName('viewport', 'width=device-width, initial-scale=1, shrink-to-fit=no, initial-scale=1.0')
         ->appendName('author', 'Michael Krasselt')
-        ->appendName('description', 'Description')
+        ->appendName('description', 'A tool to check worker tickets when entering their bus to work and bill the tours made to the company')
         . "\n";
     ?>
     <meta charset="utf-8">
@@ -31,6 +31,7 @@
         ->prependStylesheet($this->basePath('css/dashboard.css'))
         . "\n";
     echo $this->headScript()
+
         ->prependFile($this->basePath('js/color-modes.js'), 'text/javascript')
         ->prependFile($this->basePath("js/dashboard.js"), 'text/javascript')
         // ->prependFile($this->basePath('js/main.js'), 'text/javascript')
@@ -84,16 +85,16 @@
                             if (isset($activeMenuItemId)) {
                                 $this->mainMenu()->setActiveItemId($activeMenuItemId);
                             }
-                            // Render the navbar
-                            echo $this->mainMenu()->render("login");
+                            // Render the navbar 
+                            //TODO hide for now
+                            // echo $this->mainMenu()->render("login");
                             ?>
                         </ul>
 
                         <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-body-secondary text-uppercase">
                             <span><?= $this->translate('readers') ?></span>
                             <a class="link-secondary" href="<?= $this->url("reader", ["action" => "add"]) ?>" aria-label="<?= $this->translate('addReader') ?>">
-                                <i class="bi bi-person-badge"></i>
-                                <i class="bi-plus-circle"></i>
+                                <i class="bi bi-person-badge"></i><i class="bi-plus-circle"></i>
                             </a>
                         </h6>
                         <ul class="nav flex-column mb-auto">
@@ -105,11 +106,26 @@
                                 </a>
                             </li>
                         </ul>
+                        <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-body-secondary text-uppercase">
+                            <span><?= $this->translate('cards') ?></span>
+                            <a class="link-secondary" href="<?= $this->url("rider/card", ["action" => "add"]) ?>" aria-label="<?= $this->translate('addCard') ?>">
+                                <i class="bi bi-person-badge"></i><i class="bi-plus-circle"></i>
+                            </a>
+                        </h6>
+                        <ul class="nav flex-column mb-auto">
+                            <li class="nav-item">
+                                <a class="nav-link d-flex align-items-center gap-2" href="<?= $this->url("rider/card") ?>">
+                                    <i class="bi bi-person-badge"></i>
+                                    <i class="bi bi-card-list"></i>
+                                    <?= $this->translate('card list') ?>
+                                </a>
+                            </li>
+                        </ul>
                         <hr class="my-3">
                         <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-body-secondary text-uppercase">
                             <span><?= $this->translate('companies') ?></span>
                             <a class="link-secondary" href="<?= $this->url("company", ["action" => "add"]) ?>" aria-label="<?= $this->translate('addCompany') ?>">
-                                <i class="bi bi-building-add"></i>
+                                <i class="bi bi-building"></i><i class="bi-plus-circle"></i>
                             </a>
                         </h6>
                         <ul class="nav flex-column mb-auto">
@@ -120,11 +136,21 @@
                                     <?= $this->translate('company list') ?>
                                 </a>
                             </li>
+                            <?= $this->CompanyMenu(
+                                <<<TEMPLATE
+                                <li class="nav-item">
+                                <a class="nav-link d-flex align-items-center gap-2" href="{{URL}}">
+                                    {{NAME}}
+                                </a>
+                            </li>
+                            TEMPLATE,
+                                $this->url("company", ["action" => "details", "id" => "ID"])
+                            ); ?>
                             <li class="nav-item">
                                 <a class="nav-link d-flex align-items-center gap-2" href="<?= $this->url("rider") ?>">
                                     <i class="bi bi-person-arms-up"></i>
                                     <i class="bi bi-card-list"></i>
-                                    <?= $this->translate('rider list') ?>
+                                    <?= $this->translate('complete rider list') ?>
                                 </a>
                             </li>
                         </ul>
@@ -132,15 +158,13 @@
                         <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-body-secondary text-uppercase">
                             <span><?= $this->translate('routes') ?></span>
                             <a class="link-secondary" href="<?= $this->url("routes", ["action" => "add"]) ?>" aria-label="<?= $this->translate('addRoute') ?>">
-                                <i class="bi bi-signpost-split"></i>
-                                <i class="bi-plus-circle"></i>
+                                <i class="bi bi-signpost-split"></i><i class="bi-plus-circle"></i>
                             </a>
                         </h6>
                         <ul class="nav flex-column mb-auto">
                             <li class="nav-item">
                                 <a class="nav-link d-flex align-items-center gap-2" href="<?= $this->url("routes") ?>">
-                                    <i class="bi bi-signpost-split"></i>
-                                    <i class="bi bi-card-list"></i>
+                                    <i class="bi bi-signpost-split"></i><i class="bi bi-card-list"></i>
                                     <?= $this->translate('routes list') ?>
                                 </a>
                             </li>
@@ -178,6 +202,10 @@
                         </button>
                     </div>
                 </div>-->
+                <!-- End sliders -->
+                <?= $this->flashMessenger()->render('error', ['alert', 'alert-warning']); ?>
+                <?= $this->flashMessenger()->render('success', ['alert', 'alert-success']); ?>
+                <?= $this->flashMessenger()->render('info', ['alert', 'alert-info']); ?>
                 <?= $this->content . "\n"; ?>
             </main>
         </div>

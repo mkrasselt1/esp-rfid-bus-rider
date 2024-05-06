@@ -48,4 +48,8 @@ $this->headTitle($title = 'lists all readers')->setSeparator(" for ");
             ?>
         </tbody>
     </table>
+    <p>
+        use the following settings to connect to the server here:
+        url: <?= $this->url("api/backend", [], ['query' => ['token' => "PUT-TOKEN-HERE"], 'force_canonical' => true]); ?>
+    </p>
 </div>

@@ -65,6 +65,11 @@ class Company extends EntityRepository
     protected $employees;
 
     /**
+     * @ORM\OneToMany(targetEntity="BusRoute", mappedBy="company", cascade={"all"})
+     */
+    protected $busRoutes;
+
+    /**
      * @ORM\PrePersist
      * @ORM\PreUpdate
      */
@@ -80,6 +85,7 @@ class Company extends EntityRepository
         $this->setDateModified();
         $this->setStatus(self::STATUS_ACTIVE);
         $this->employees = new ArrayCollection();
+        $this->busRoutes = new ArrayCollection();
     }
     /**
      * Returns company ID.
@@ -131,9 +137,27 @@ class Company extends EntityRepository
      * Sets associated employees.
      * @param company $company
      */
-    public function setEmployees(Collection $employees)
+    public function setEmployee(Collection $employees)
     {
         $this->employees = $employees;
+    }
+
+     /**
+     * returns associated bus routes.
+     * @return ArrayCollection
+     */
+    public function getBusRoutes()
+    {
+        return $this->busRoutes;
+    }
+
+    /**
+     * Sets associated bus routes.
+     * @param company $company
+     */
+    public function setBusRoutes(Collection $busRoutes)
+    {
+        $this->busRoutes = $busRoutes;
     }
 
     /**

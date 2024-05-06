@@ -5,12 +5,12 @@ namespace Rider\Controller;
 use Laminas\Mvc\Controller\AbstractActionController;
 use Doctrine\ORM\EntityManager;
 use Laminas\Http\Request;
-use Rider\Entity\Company;
-use Rider\Form\CompanyAddForm;
-use Rider\Form\CompanyEditForm;
+use Rider\Entity\Card;
+use Rider\Form\CardAddForm;
+use Rider\Form\CardEditForm;
 use Rider\Form\DeleteForm;
 
-class CompanyController extends AbstractActionController
+class CardController extends AbstractActionController
 {
     /**
      * Constructor is used for injecting dependencies into the controller.
@@ -30,15 +30,15 @@ class CompanyController extends AbstractActionController
     public function indexAction()
     {
         return [
-            "companies" => $this->entityManager->getRepository(Company::class)->findAll()
+            "cards" => $this->entityManager->getRepository(Card::class)->findAll()
         ];
     }
 
     public function addAction()
     {
-        $newCompany = new Company();
-        $form = new CompanyAddForm($this->entityManager, "add-Company");
-        $form->bind($newCompany);
+        $newCard = new Card();
+        $form = new CardAddForm($this->entityManager, "add-card");
+        $form->bind($newCard);
 
         // Check if user has submitted the form
         if ($this->getHTTPRequest()->isPost()) {
@@ -48,10 +48,10 @@ class CompanyController extends AbstractActionController
             // Validate form
             if ($form->isValid()) {
 
-                $this->entityManager->persist($newCompany);
+                $this->entityManager->persist($newCard);
                 $this->entityManager->flush();
-                $this->flashMessenger()->addSuccessMessage('Company added successfully');
-                return $this->redirect()->toRoute('company', ['action' => 'index']);
+                $this->flashMessenger()->addSuccessMessage('card added successfully');
+                return $this->redirect()->toRoute('card', ['action' => 'index']);
             }
         }
         return [
@@ -61,12 +61,12 @@ class CompanyController extends AbstractActionController
 
     public function editAction()
     {
-        $companyId = (int) $this->params()->fromRoute('id', 0);
-        /** @var Company */
-        $company = $this->entityManager->find(Company::class, $companyId);
+        $cardId = (int) $this->params()->fromRoute('id', 0);
+        /** @var Card */
+        $card = $this->entityManager->find(Card::class, $cardId);
 
-        $form = new CompanyEditForm($this->entityManager, "edit-Company");
-        $form->bind($company);
+        $form = new CardEditForm($this->entityManager, "edit-card");
+        $form->bind($card);
 
         // Check if user has submitted the form
         if ($this->getHTTPRequest()->isPost()) {
@@ -77,8 +77,8 @@ class CompanyController extends AbstractActionController
             if ($form->isValid()) {
 
                 $this->entityManager->flush();
-                $this->flashMessenger()->addSuccessMessage('company changed successfully');
-                return $this->redirect()->toRoute('company', ['action' => 'index']);
+                $this->flashMessenger()->addSuccessMessage('card changed successfully');
+                return $this->redirect()->toRoute('card', ['action' => 'index']);
             }
         }
         return [
@@ -88,9 +88,9 @@ class CompanyController extends AbstractActionController
 
     public function deleteAction()
     {
-        $companyId = (int) $this->params()->fromRoute('id', 0);
-        /** @var Company */
-        $company = $this->entityManager->find(Company::class, $companyId);
+        $cardId = (int) $this->params()->fromRoute('id', 0);
+        /** @var Card */
+        $card = $this->entityManager->find(Card::class, $cardId);
 
         $form = new DeleteForm();
 
@@ -101,25 +101,14 @@ class CompanyController extends AbstractActionController
             $form->setData($this->params()->fromPost());
             // Validate form
             if ($form->isValid()) {
-                $company->setStatus(Company::STATUS_RETIRED);
+                $card->setStatus(Card::STATUS_RETIRED);
                 $this->entityManager->flush();
-                $this->flashMessenger()->addSuccessMessage('company deleted successfully');
-                return $this->redirect()->toRoute('company', ['action' => 'index']);
+                $this->flashMessenger()->addSuccessMessage('card deleted successfully');
+                return $this->redirect()->toRoute('card', ['action' => 'index']);
             }
         }
         return [
             "form" => $form
-        ];
-    }
-
-    public function detailsAction()
-    {
-        $companyId = (int) $this->params()->fromRoute('id', 0);
-        /** @var Company */
-        $company = $this->entityManager->find(Company::class, $companyId);
-
-        return [
-            "company" => $company
         ];
     }
 

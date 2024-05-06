@@ -3,6 +3,8 @@
 namespace Rider\Entity;
 
 use DateTime;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\ORM\EntityRepository;
 
@@ -53,6 +55,11 @@ class BusStop extends EntityRepository
     protected $busRoute;
 
     /**
+     * @ORM\OneToMany(targetEntity="Employee", mappedBy="busStop", cascade={"all"})
+     */
+    protected $employees;
+
+    /**
      * @var DateTime
      * @ORM\Column(name="dateCreated", type="datetime", nullable=false)
      */
@@ -77,6 +84,7 @@ class BusStop extends EntityRepository
     {
         $this->setDateCreated();
         $this->setDateModified();
+        $this->employees = new ArrayCollection();
     }
 
     /**
@@ -140,6 +148,42 @@ class BusStop extends EntityRepository
     public function getBusRouteName()
     {
         return $this->getBusRoute()?->getName() ?? "-/-";
+    }
+
+    /**
+     * returns associates employees.
+     * @return ArrayCollection
+     */
+    public function getEmployees()
+    {
+        return $this->employees;
+    }
+
+    /**
+     * Sets associated employees.
+     * @param company $company
+     */
+    public function setEmployees(Collection $employees)
+    {
+        $this->employees = $employees;
+    }
+
+    /**
+     * add selected employee.
+     * @param company $company
+     */
+    public function addEmployees(Employee $employee)
+    {
+        $this->getEmployees()->add($employee);
+    }
+
+    /**
+     * remove selected employee.
+     * @param company $company
+     */
+    public function removeEmployee(Collection $employee)
+    {
+        $this->getEmployees()->removeElement($employee);
     }
 
     /**

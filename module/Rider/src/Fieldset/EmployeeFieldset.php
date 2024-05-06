@@ -2,6 +2,7 @@
 
 namespace Rider\Fieldset;
 
+use Doctrine\Common\Collections\Criteria;
 use Doctrine\Laminas\Hydrator\DoctrineObject as DoctrineHydrator;
 use Doctrine\ORM\EntityManager;
 use DoctrineModule\Form\Element\ObjectSelect;
@@ -16,6 +17,7 @@ use Laminas\InputFilter\InputFilterProviderInterface;
 use Laminas\Validator\StringLength;
 use Rider\Entity\BusRoute;
 use Rider\Entity\BusStop;
+use Rider\Entity\Card;
 use Rider\Entity\Company;
 use Rider\Entity\Employee;
 
@@ -27,11 +29,16 @@ class EmployeeFieldset extends Fieldset implements InputFilterProviderInterface
      */
     private $entityManager = null;
 
-    public function __construct(string $name, EntityManager $entityManager)
+    /**
+     * @var Employee
+     */
+    private $employee = null;
+
+    public function __construct(string $name, EntityManager $entityManager, ?Employee $employee = null)
     {
         parent::__construct($name);
-
         $this->entityManager = $entityManager;
+        $this->employee = $employee;
         $this->setHydrator(new DoctrineHydrator($this->entityManager))
             ->setObject(new Employee());
 
@@ -75,7 +82,7 @@ class EmployeeFieldset extends Fieldset implements InputFilterProviderInterface
         $this->add([
             'type' => ObjectSelect::class,
             'attributes' => [
-                'class' => 'form-control'
+                'class' => 'form-control',
             ],
             'options' => [
                 'label' => 'assign company',
@@ -131,7 +138,8 @@ class EmployeeFieldset extends Fieldset implements InputFilterProviderInterface
                             'status' => [
                                 BusStop::STATUS_ACTIVE,
                                 BusStop::STATUS_INACTIVE
-                            ]
+                            ],
+                            'busRoute' => $this->employee->getCompany()->getBusRoutes()->map(fn (BusRoute $br) => $br->getId())->toArray()
                         ],
                         'orderBy'  => ['busRoute' => 'ASC'],
                     ],
@@ -141,6 +149,33 @@ class EmployeeFieldset extends Fieldset implements InputFilterProviderInterface
                 'empty_item_label'   => '-no busStop assigned-',
             ],
             'name' => 'busStop'
+        ]);
+
+        $this->add([
+            'type' => ObjectSelect::class,
+            'attributes' => [
+                'class' => 'form-control',
+                "multiple" => true,
+            ],
+            'options' => [
+                'label' => 'assign cards',
+                'object_manager' => $this->entityManager,
+                'target_class'   => Card::class,
+                //'property'       => 'id',
+                'label_generator' => function (Card $card) {
+                    return $card->getNumber();
+                },
+                'is_method'      => true,
+                'find_method'    => [
+                    'name'   => 'getCardsForEmployee',
+                    'params' => [
+                        "employee" => $this->employee,
+                    ],
+                ],
+                'display_empty_item' => true,
+                'empty_item_label'   => '-no card assigned-',
+            ],
+            'name' => 'cards'
         ]);
     }
     public function getInputFilterSpecification()

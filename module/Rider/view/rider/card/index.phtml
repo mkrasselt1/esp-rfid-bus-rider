@@ -1,0 +1,58 @@
+<?php
+
+use Rider\Entity\BusRoute;
+use Rider\Entity\BusStop;
+use Rider\Entity\Card;
+
+$this->headTitle($title = 'lists all cards')->setSeparator(" for ");
+?>
+<h1>
+    <?= $title ?>
+    <a class="btn btn-primary" href="<?= $this->url("rider/card", ["action" => "add"]) ?>">
+        <i class="bi bi-signpost-split"></i>
+        <i class="bi-plus-circle"></i>
+    </a>
+</h1>
+<div class="table-resp">
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>name</th>
+                <th>number</th>
+                <th>uid</th>
+                <th>status</th>
+                <th>date created/date modified</th>
+                <th>actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            <?php
+            if (isset($cards) && is_array($cards)) {
+                /**
+                 * @var Card $card
+                 */
+
+                foreach ($cards as $card) {
+            ?>
+                    <tr>
+                        <td><?= $card->getName(); ?></td>
+                        <td><?= $card->getNumber(); ?></td>
+                        <td><?= $card->getUID(); ?></td>
+                        <td><?= $card->getStatusAsString(); ?></td>
+                        <td>
+                            <?= $card->getDateCreated()->format("H:i:s d.m.Y") ?>/
+                            <?= $card->getDateModified()->format("H:i:s d.m.Y") ?>
+                        </td>
+                        <td>
+                            <a class="btn btn-primary" href="<?= $this->url("rider/card", ["action" => "edit", "id" => $card->getId()]) ?>">
+                                <i class="bi bi-pencil-square"></i> edit</a>
+                            <a class="btn btn-primary" href="<?= $this->url("rider/card", ["action" => "delete", "id" => $card->getId()]) ?>">
+                                <i class="bi bi-trash"></i>delete</a>
+                        </td>
+                    </tr>
+            <?php }
+            }
+            ?>
+        </tbody>
+    </table>
+</div>

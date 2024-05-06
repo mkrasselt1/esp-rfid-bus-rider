@@ -39,6 +39,16 @@ $employeeFieldset = $form->get("employee");
                 </td>
             </tr>
             <tr>
+                <th><?= $this->formLabel($employeeFieldset->get('cards')); ?></th>
+                <td>
+                    <div class="form-group">
+                        <?= $this->formElement($employeeFieldset->get('cards')); ?>
+                        <?= $this->FormErrorMessage($this->formElementErrors($employeeFieldset->get('cards'))); ?>
+                    </div>
+
+                </td>
+            </tr>
+            <tr>
                 <th><?= $this->formLabel($employeeFieldset->get('status')); ?></th>
                 <td>
                     <div class="form-group">
