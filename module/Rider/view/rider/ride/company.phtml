@@ -1,0 +1,40 @@
+<?php
+
+use Rider\Entity\Company;
+use Rider\Entity\Ride;
+/** @var Company $company */
+
+$this->headTitle($title = 'lists all rides from rider of company ' . $company->getName())->setSeparator(" for ");
+/** @var Ride[] $rides */
+?>
+<h1><?= $title ?></h1>
+<div class="table-resp">
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>date</th>
+                <th>employee</th>
+                <th>busRoute/busStop</th>
+            </tr>
+        </thead>
+        <tbody>
+            <?php
+
+            if (isset($rides) && is_array($rides)) {
+                /**
+                 * @var Ride $ride
+                 */
+                foreach ($rides as $ride) {
+            ?>
+                    <tr>
+                        <td><?= $ride->getDateCreated()->format("H:i:s d.m.Y") ?></td>
+                        <td><?= $ride->getEmployee()->getCompany()->getName() ?></td>
+                        <td><?= $ride->getEmployee()->getName(); ?></td>
+                        <td><?= $ride->getBusStop()->getBusRouteName(); ?>/<?= $ride->getBusStop()->getName(); ?></td>
+                    </tr>
+            <?php }
+            }
+            ?>
+        </tbody>
+    </table>
+</div>

@@ -204,6 +204,9 @@ class EmployeeFieldset extends Fieldset implements InputFilterProviderInterface
             'status' => [
                 'required' => true,
             ],
+            'company' => [
+                'required' => false
+            ]
         ];
     }
 }

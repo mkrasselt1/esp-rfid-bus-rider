@@ -65,7 +65,7 @@ class Ride extends EntityRepository
         $this->setDateCreated();
         $this->setDateModified();
     }
-    
+
     /**
      * Returns card id.
      * @return integer
@@ -100,6 +100,7 @@ class Ride extends EntityRepository
     public function setEmployee($employee)
     {
         $this->employee = $employee;
+        return $this;
     }
 
     /**
@@ -136,6 +137,16 @@ class Ride extends EntityRepository
     public function setBusStop($busStop)
     {
         $this->busstop = $busStop;
+        return $this;
+    }
+
+    public static function fromCard(Card $c): self
+    {
+        $newRide = new Ride();
+        $newRide->setEmployee($c->getEmployee())
+            ->setBusStop($c->getEmployee()->getBusStop())
+            ->setCard($c);
+        return $newRide;
     }
 
     /**

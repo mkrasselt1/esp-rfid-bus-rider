@@ -84,7 +84,6 @@ class Employee extends EntityRepository
      */
     protected $rides;
 
-
     /**
      * @ORM\PrePersist
      * @ORM\PreUpdate

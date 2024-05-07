@@ -9,6 +9,7 @@ use Rider\Controller\BusRouteController;
 use Rider\Controller\CardController;
 use Rider\Controller\CompanyController;
 use Rider\Controller\RiderController;
+use Rider\Controller\RideController;
 
 $dateRegex = '((((19|20)([2468][048]|[13579][26]|0[48])|2000)-02-29|((19|20)[0-9]{2}-(0[4678]|1[02])-(0[1-9]|[12][0-9]|30)|(19|20)[0-9]{2}-(0[1359]|11)-(0[1-9]|[12][0-9]|3[01])|(19|20)[0-9]{2}-02-(0[1-9]|1[0-9]|2[0-8])))T([01][0-9]|2[0-3]):([012345][0-9]):([012345][0-9]))|[0-9]*';
 return [
@@ -94,6 +95,20 @@ return [
                             ],
                         ],
                     ],
+                    'rides' => [
+                        'type' => Segment::class,
+                        'options' => [
+                            'route' => '/rides[/action-:action[/id-:id]]',
+                            'constraints' => [
+                                'action'     => '[a-zA-Z][a-zA-Z0-9_-]*',
+                                'id'     => '[0-9]*',
+                            ],
+                            'defaults' => [
+                                'controller'    => RideController::class,
+                                'action'        => 'index',
+                            ],
+                        ],
+                    ],
                 ]
             ],
         ],
@@ -103,6 +118,7 @@ return [
             CompanyController::class => LazyControllerAbstractFactory::class,
             BusRouteController::class => LazyControllerAbstractFactory::class,
             RiderController::class => LazyControllerAbstractFactory::class,
+            RideController::class => LazyControllerAbstractFactory::class,
             CardController::class => LazyControllerAbstractFactory::class,
         ],
     ],

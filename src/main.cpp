@@ -15,6 +15,15 @@
 //  extern beeper beepr;
 //  extern eventHandler<uint8_t> beeperEvents;
 
+// config
+struct Config
+{
+    char server[64];
+    char token[36];
+};
+const char *configFilename = "/config.txt";
+Config config;
+
 // Display
 #include <TFT_eSPI.h>
 TFT_eSPI tft = TFT_eSPI(135, 240); // Invoke custom library
@@ -37,8 +46,8 @@ void displayRun(void *args)
 #include <WiFi.h>
 #include <WiFiManager.h> // https://github.com/tzapu/WiFiManager
 WiFiManager wifiManager;
-WiFiManagerParameter backendServer("backendServer", "Server URL", "https://example.com/api/backend", 260);
-WiFiManagerParameter token("token", "Token", "ABCDEF12345678", 26);
+WiFiManagerParameter backendServer("backendServer", "Server URL", "https://example.com/api/backend", sizeof(config.server));
+WiFiManagerParameter token("token", "Token", "ABCDEF12345678", sizeof(config.token));
 
 unsigned int timeout = 180; // seconds to run for
 unsigned int startTime = millis();
@@ -102,15 +111,6 @@ void button_init()
 #include <WiFiClientSecure.h>
 #include <HTTPClient.h>
 
-// config
-struct Config
-{
-    char server[64];
-    char token[17];
-};
-const char *configFilename = "/config.txt";
-Config config;
-
 void loadConfiguration()
 {
     File configFile = SPIFFS.open(configFilename);
@@ -128,6 +128,10 @@ void loadConfiguration()
             doc["token"] | "ABCDEF123456789",
             sizeof(config.token));
     configFile.close();
+    Serial.print("Config loaded:");
+    Serial.print(config.server);
+    Serial.print("?token=");
+    Serial.println(config.token);
 }
 
 // Saves the configuration to a file
@@ -331,11 +335,12 @@ void sendCard()
     HTTPClient http;
     http.useHTTP10(true);
     // http.setFollowRedirects(HTTPC_FORCE_FOLLOW_REDIRECTS);
-    char url[128] = {0};
+    char url[sizeof(config.server) + sizeof(config.token) + 25] = {0};
     strcat(url, config.server);
     strcat(url, "/action-card?token=");
     strcat(url, config.token);
-
+    Serial.print("POST:");
+    Serial.println(url);
     http.begin(client, url);
 
     String json;
@@ -655,7 +660,8 @@ void setup()
 
     // Storage
     Serial.println("start storage");
-    if(!SPIFFS.begin()){
+    if (!SPIFFS.begin())
+    {
         Serial.println("not formatted - starting formatting");
         SPIFFS.format();
     }
@@ -678,6 +684,8 @@ void setup()
     wifiManager.setSaveParamsCallback(saveConfiguration);
     wifiManager.addParameter(&backendServer);
     wifiManager.addParameter(&token);
+    backendServer.setValue(config.server, sizeof(config.server));
+    token.setValue(config.token, sizeof(config.token));
     wifiManager.setConfigPortalBlocking(false);
     wifiManager.setConfigPortalTimeout(timeout);
     wifiManager.setConnectRetries(3);

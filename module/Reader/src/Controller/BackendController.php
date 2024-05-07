@@ -5,8 +5,11 @@ namespace Reader\Controller;
 use Laminas\Mvc\Controller\AbstractActionController;
 use Doctrine\ORM\EntityManager;
 use Laminas\Http\Request;
+use Laminas\Http\Response;
 use Laminas\View\Model\JsonModel;
+use Reader\Entity\Reader;
 use Rider\Entity\Card;
+use Rider\Entity\Ride;
 use Rider\Service\CardService;
 
 class BackendController extends AbstractActionController
@@ -52,24 +55,45 @@ class BackendController extends AbstractActionController
     public function cardAction()
     {
         $this->layout()->setTemplate('layout/api');
+        $token = $this->getHTTPRequest()->getQuery("token", 0);
+        $readers = $this->entityManager->getRepository(Reader::class)->findBy([
+            "token" => $token
+        ]);
+        //check authentication by result size
+        if (!count($readers) || count($readers) > 1) {
+            $this->getHTTPResponse()->setStatusCode(401);
+            return new JsonModel(["message" => "unauthorized"]);
+        }
+        /** @var Reader */
+        $reader = \array_shift($readers);
 
         // $message = json_decode(file_get_contents("php://input"), true);
         $message = $this->getHTTPRequest()->getContent();
         $message = \json_decode($this->getHTTPRequest()->getContent());
 
-
-
         /** @var Card */
         $card = $this->entityManager->getRepository(Card::class)->findOneBy([
             "uid" => $message->id
         ]);
-        //create new cards if not existings
+        //create new cards if not existing
         if (\is_null($card)) {
             $card = $this->createCard(
                 uid: $message->id,
                 timestamp: $message->timestamp
             );
         }
+        
+        if (is_null($card->getEmployee())) {
+            $this->getHTTPResponse()->setStatusCode(412);
+            return new JsonModel(["message" => "not assigned"]);
+        }
+
+        //all prerequisites fulfilled
+
+        $newRide = Ride::fromCard($card);
+        $this->entityManager->persist($newRide);
+        $this->entityManager->flush();
+
         return new JsonModel(
             [
                 $card->getId()
@@ -153,5 +177,10 @@ class BackendController extends AbstractActionController
     private function getHTTPRequest(): Request
     {
         return $this->getRequest();
+    }
+
+    private function getHttpResponse(): Response
+    {
+        return $this->getResponse();
     }
 }

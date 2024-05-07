@@ -169,6 +169,27 @@
                                 </a>
                             </li>
                         </ul>
+                        <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-body-secondary text-uppercase">
+                            <span><?= $this->translate('rides') ?></span>
+                        </h6>
+                        <ul class="nav flex-column mb-auto">
+                            <li class="nav-item">
+                                <a class="nav-link d-flex align-items-center gap-2" href="<?= $this->url("rider/rides") ?>">
+                                    <i class="bi bi-ticket-perforated-fill"></i><i class="bi bi-card-list"></i>
+                                    <?= $this->translate('rides list') ?>
+                                </a>
+                            </li>
+                            <?= $this->CompanyMenu(
+                                <<<TEMPLATE
+                                <li class="nav-item">
+                                <a class="nav-link d-flex align-items-center gap-2" href="{{URL}}">
+                                    {{NAME}}
+                                </a>
+                            </li>
+                            TEMPLATE,
+                                $this->url("rider/rides", ["action" => "company", "id" => "ID"])
+                            ); ?>
+                        </ul>
                         <hr class="my-3">
                         <ul class="nav flex-column mb-auto">
                             <li class="nav-item">
