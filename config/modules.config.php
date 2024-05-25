@@ -26,7 +26,7 @@ return [
     'Laminas\Diactoros',
     'DoctrineModule',
     'DoctrineORMModule',
-    // 'User',
+    'User',
     'Site',
     'Rider',
     'Reader',
